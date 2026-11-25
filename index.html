@@ -1,0 +1,2101 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🎄 Familie Verlanglijstjes — Gedeelde Kerst Editie</title>
+  <style>
+    :root {
+      --bg-dark: #071914;
+      --bg-mid: #0d2b22;
+      --card-bg: rgba(15, 42, 34, 0.92);
+      --card-border: rgba(212, 175, 55, 0.35);
+      --gold: #f5c84c;
+      --gold-dark: #c99a24;
+      --red: #c81d25;
+      --red-dark: #991118;
+      --green: #1b6b46;
+      --green-light: #2b8a5c;
+      --text-main: #f8fafc;
+      --text-muted: #cbd5e1;
+      --input-bg: rgba(7, 25, 20, 0.85);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background: radial-gradient(circle at top, #123b2e 0%, var(--bg-dark) 75%);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+      padding-bottom: 48px;
+    }
+
+    /* Sneeuwvlokjes */
+    .snow-container {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .snowflake {
+      position: absolute;
+      top: -20px;
+      color: rgba(255, 255, 255, 0.55);
+      user-select: none;
+      animation: fall linear infinite;
+    }
+    @keyframes fall {
+      0% { transform: translateY(-20px) rotate(0deg); }
+      100% { transform: translateY(105vh) rotate(360deg); }
+    }
+
+    /* Kerstlichtjes */
+    .lights-bar {
+      display: flex;
+      justify-content: space-around;
+      padding: 6px 0 10px;
+      background: rgba(4, 15, 12, 0.85);
+      border-bottom: 1px solid rgba(212, 175, 55, 0.25);
+      position: relative;
+      z-index: 2;
+      overflow: hidden;
+    }
+    .bulb {
+      width: 10px;
+      height: 14px;
+      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+      animation: twinkle 1.8s infinite alternate;
+    }
+    .bulb:nth-child(4n+1) { background: #ff4d4d; box-shadow: 0 0 10px #ff4d4d; animation-delay: 0s; }
+    .bulb:nth-child(4n+2) { background: #ffd166; box-shadow: 0 0 10px #ffd166; animation-delay: 0.4s; }
+    .bulb:nth-child(4n+3) { background: #06d6a0; box-shadow: 0 0 10px #06d6a0; animation-delay: 0.8s; }
+    .bulb:nth-child(4n+4) { background: #4cc9f0; box-shadow: 0 0 10px #4cc9f0; animation-delay: 1.2s; }
+    @keyframes twinkle {
+      0% { opacity: 0.45; transform: scale(0.92); }
+      100% { opacity: 1; transform: scale(1.08); }
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 16px;
+      position: relative;
+      z-index: 1;
+    }
+
+    header {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 18px 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand h1 {
+      font-size: 1.45rem;
+      color: var(--gold);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .brand p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    .header-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .badge {
+      background: rgba(245, 200, 76, 0.15);
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+    .badge-live {
+      background: rgba(16, 185, 129, 0.18);
+      border-color: #10b981;
+      color: #6ee7b7;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: 10px;
+      padding: 9px 14px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: all 0.18s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    button:active { transform: scale(0.97); }
+    button:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    .btn-gold {
+      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+      color: #1a1300;
+    }
+    .btn-gold:hover { filter: brightness(1.08); }
+
+    .btn-red {
+      background: linear-gradient(135deg, var(--red), var(--red-dark));
+      color: #fff;
+    }
+    .btn-red:hover { filter: brightness(1.1); }
+
+    .btn-green {
+      background: linear-gradient(135deg, var(--green-light), var(--green));
+      color: #fff;
+    }
+    .btn-green:hover { filter: brightness(1.1); }
+
+    .btn-outline {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: var(--text-main);
+    }
+    .btn-outline:hover { background: rgba(255, 255, 255, 0.14); }
+
+    .btn-sm {
+      padding: 6px 10px;
+      font-size: 0.8rem;
+      border-radius: 8px;
+    }
+
+    /* Login & Cloud Setup scherm */
+    .login-box {
+      max-width: 620px;
+      margin: 20px auto;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.55);
+      text-align: center;
+    }
+    .login-box h2 {
+      color: var(--gold);
+      margin-bottom: 8px;
+      font-size: 1.35rem;
+    }
+    .login-box p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-bottom: 18px;
+      line-height: 1.45;
+    }
+
+    .member-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .member-card {
+      position: relative;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      border-radius: 12px;
+      padding: 12px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+    .member-card:hover {
+      background: rgba(245, 200, 76, 0.18);
+      border-color: var(--gold);
+    }
+    .member-card .avatar {
+      font-size: 1.45rem;
+    }
+    .member-card .pin-tag {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+    .member-delete-btn {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      padding: 3px 6px;
+      font-size: 0.72rem;
+      border-radius: 6px;
+      background: rgba(153, 17, 24, 0.75);
+      color: #fff;
+      opacity: 0.82;
+    }
+    .member-delete-btn:hover {
+      opacity: 1;
+      background: var(--red);
+    }
+
+    .pin-panel {
+      background: rgba(7, 25, 20, 0.92);
+      border: 1px solid var(--gold);
+      border-radius: 14px;
+      padding: 18px;
+      margin-top: 12px;
+    }
+    .pin-input {
+      width: 160px;
+      text-align: center;
+      font-size: 1.5rem;
+      letter-spacing: 8px;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid var(--gold);
+      background: #04100d;
+      color: var(--gold);
+      margin: 12px auto;
+      display: block;
+    }
+
+    /* Hoofdscherm tabs & navigatie */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      background: rgba(15, 42, 34, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--text-muted);
+      padding: 10px 16px;
+      border-radius: 12px;
+    }
+    .tab-btn.active {
+      background: linear-gradient(135deg, var(--red), var(--red-dark));
+      border-color: var(--gold);
+      color: #fff;
+    }
+
+    .person-pills {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 10px;
+      margin-bottom: 16px;
+    }
+    .pill {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: var(--text-main);
+      padding: 8px 14px;
+      border-radius: 999px;
+      white-space: nowrap;
+      font-size: 0.88rem;
+    }
+    .pill.active {
+      background: var(--gold);
+      color: #1a1300;
+      border-color: var(--gold);
+      font-weight: 700;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 18px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+
+    .list-header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .secret-banner {
+      background: rgba(27, 107, 70, 0.28);
+      border: 1px solid #2b8a5c;
+      color: #a7f3d0;
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-size: 0.88rem;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    @media (max-width: 600px) {
+      .form-grid { grid-template-columns: 1fr; }
+    }
+    select, input, textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(212, 175, 55, 0.35);
+      background: var(--input-bg);
+      color: var(--text-main);
+      font-size: 0.92rem;
+    }
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: var(--gold);
+    }
+
+    .gift-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .gift-item {
+      background: rgba(7, 25, 20, 0.78);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 14px;
+      padding: 14px 16px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      transition: border-color 0.2s;
+    }
+    .gift-item.bought {
+      border-color: rgba(43, 138, 92, 0.65);
+      background: rgba(16, 56, 41, 0.6);
+    }
+    .gift-info {
+      flex: 1 1 260px;
+    }
+    .gift-title {
+      font-size: 1.02rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .gift-item.bought .gift-title-text {
+      text-decoration: line-through;
+      color: #94a3b8;
+    }
+    .price-pill {
+      display: inline-block;
+      background: rgba(245, 200, 76, 0.14);
+      border: 1px solid rgba(245, 200, 76, 0.42);
+      color: var(--gold);
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+    .price-unpriced {
+      display: inline-block;
+      background: rgba(148, 163, 184, 0.12);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      color: var(--text-muted);
+      font-size: 0.76rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+    .gift-meta {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+    .gift-link {
+      display: inline-block;
+      margin-top: 6px;
+      color: var(--gold);
+      text-decoration: none;
+      font-size: 0.84rem;
+      font-weight: 600;
+    }
+    .gift-link:hover { text-decoration: underline; }
+
+    .status-tag {
+      font-size: 0.76rem;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+    .status-bought {
+      background: rgba(16, 185, 129, 0.2);
+      color: #6ee7b7;
+      border: 1px solid rgba(16, 185, 129, 0.45);
+    }
+
+    .gift-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 10, 8, 0.82);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 50;
+    }
+    .modal-card {
+      background: #0d2b22;
+      border: 1px solid var(--gold);
+      border-radius: 16px;
+      max-width: 560px;
+      width: 100%;
+      padding: 22px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+    }
+    .modal-card h3 { color: var(--gold); margin-bottom: 10px; }
+    .modal-card p, .modal-card li { color: var(--text-muted); font-size: 0.88rem; line-height: 1.5; }
+    .modal-card ol { margin-left: 18px; margin-bottom: 14px; }
+
+    .hidden { display: none !important; }
+    .error-msg {
+      color: #fca5a5;
+      font-size: 0.85rem;
+      margin-top: 6px;
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+  <div class="snow-container" id="snow"></div>
+  <div class="lights-bar" id="lights"></div>
+
+  <div class="container">
+    <header>
+      <div class="brand">
+        <h1>🎄 Familie Verlanglijstjes</h1>
+        <p id="syncSubtitle">Gedeelde Kersteditie • Klaar voor meerdere toestellen</p>
+      </div>
+      <div class="header-actions" id="headerActions">
+        <span class="badge" id="familyBadge">👨‍👩‍👧‍👦 Familie</span>
+        <span class="badge" id="syncBadge">☁️ Lokaal (koppel cloud voor sync)</span>
+        <span class="badge hidden" id="userBadge"></span>
+        <button class="btn-outline btn-sm" onclick="openCloudModal()">☁️ Cloud-opslag</button>
+        <button class="btn-outline btn-sm" onclick="syncNow()" id="refreshBtn" title="Ververs lijstjes">🔄</button>
+        <button class="btn-red btn-sm hidden" id="logoutBtn" onclick="logout()">🔒 Uitloggen</button>
+      </div>
+    </header>
+
+    <!-- TOEGANGSSCHERM VOOR ONBEKENDEN -->
+    <div id="accessGateView" class="login-box">
+      <h2>🔒 Besloten Familie-app</h2>
+      <p>Deze verlanglijstjes-app is enkel toegankelijk voor uitgenodigde familieleden. Voer de <strong>familie-toegangscode</strong> in of open de persoonlijke deel-link die je via WhatsApp/e-mail kreeg.</p>
+      <div style="max-width: 300px; margin: 0 auto 12px;">
+        <input type="text" id="accessCodeInput" placeholder="Familie-toegangscode..." style="text-align:center; font-weight:700; letter-spacing:2px;" />
+      </div>
+      <div id="accessGateError" class="error-msg hidden" style="margin-bottom: 10px;"></div>
+      <button class="btn-gold" onclick="submitAccessCode()">🔓 Toegang openen</button>
+    </div>
+
+    <!-- LOGIN SCHERM -->
+    <div id="loginView" class="login-box hidden">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:14px; padding-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.12);">
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+          <span style="font-size:0.85rem; color:var(--gold); font-weight:700;">👨‍👩‍👧‍👦 Familie:</span>
+          <select id="familySelect" onchange="switchFamily(this.value)" style="padding:7px 12px; border-radius:10px; border:1px solid var(--gold); background:var(--input-bg); color:var(--text-main); font-size:0.9rem; font-weight:600;"></select>
+        </div>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          <input type="text" id="newFamilyName" placeholder="Nieuwe familie..." style="width:155px; padding:7px 10px; font-size:0.84rem;" />
+          <button class="btn-gold btn-sm" onclick="addNewFamily()">+ Familie</button>
+          <button class="btn-outline btn-sm" onclick="copyFamilyInviteLink()" title="Kopieer uitnodigingslink voor de actieve familie">🔗 Deel familie</button>
+        </div>
+      </div>
+
+      <h2 id="loginHeading">🎅 Wie ben jij?</h2>
+      <p id="loginSubtitle">Kies je naam hieronder. Bij je eerste bezoek stel je een persoonlijke pincode van 4 cijfers in zodat niemand op jouw scherm kan spieken!</p>
+
+      <div class="member-grid" id="memberGrid"></div>
+
+      <div id="pinPanel" class="pin-panel hidden">
+        <h3 id="pinTitle" style="color: var(--gold); margin-bottom: 4px;"></h3>
+        <p id="pinSubtitle" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;"></p>
+        <input type="password" id="pinInput" class="pin-input" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="••••" />
+        <div id="pinError" class="error-msg hidden"></div>
+        <div style="display:flex; gap:8px; justify-content:center; margin-top:12px;">
+          <button class="btn-outline btn-sm" onclick="cancelPin()">Annuleren</button>
+          <button class="btn-gold" onclick="submitPin()">Bevestigen 🎄</button>
+        </div>
+      </div>
+
+      <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.12); display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
+        <input type="text" id="newMemberName" placeholder="Nieuw familielid toevoegen..." style="max-width: 230px;" />
+        <button class="btn-green btn-sm" onclick="addNewMember()">+ Toevoegen</button>
+      </div>
+
+      <div style="margin-top: 14px;">
+        <button class="btn-outline btn-sm" onclick="resetToDefaultGifts()">🔄 Herstel standaard PDF-cadeaus</button>
+      </div>
+    </div>
+
+    <!-- INGELOGDE APP -->
+    <div id="appView" class="hidden">
+      <div class="tabs">
+        <button class="tab-btn active" id="tabLists" onclick="switchTab('lists')">🎁 Verlanglijstjes</button>
+        <button class="tab-btn" id="tabMyPurchases" onclick="switchTab('purchases')">🛍️ Mijn Gekochte Cadeaus</button>
+      </div>
+
+      <!-- TAB 1: VERLANGLIJSTJES -->
+      <div id="listsSection">
+        <div class="person-pills" id="personPills"></div>
+
+        <div class="card">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
+            <h2 id="selectedPersonHeading" style="color: var(--gold); font-size: 1.3rem;"></h2>
+            <div class="list-header-right">
+              <span id="listTotalBadge" class="badge"></span>
+              <span id="giftCountBadge" class="badge"></span>
+              <button type="button" class="btn-outline btn-sm" id="downloadPdfBtn" onclick="downloadPersonListPdf()" title="Download jouw eigen verlanglijstje als PDF met alle info">📄 Download mijn PDF</button>
+            </div>
+          </div>
+
+          <div id="ownListBanner" class="secret-banner hidden">
+            <span>🤫</span>
+            <div><strong>Geheime Kerstmodus:</strong> Dit is jouw eigen verlanglijstje. Je ziet hier dus <em>niet</em> welke cadeaus al door familieleden zijn gekocht!</div>
+          </div>
+
+          <!-- CADEAU TOEVOEGEN / BEWERKEN (ALLEEN OP EIGEN LIJST) -->
+          <div id="addGiftForm" class="card" style="background: rgba(7, 25, 20, 0.65); border-color: rgba(245, 200, 76, 0.25); margin-bottom: 18px;">
+            <h3 id="formTitle" style="color: var(--gold); font-size: 1rem; margin-bottom: 10px;">✨ Nieuw cadeau op jouw lijst zetten</h3>
+            <input type="hidden" id="editGiftId" value="" />
+            <div class="form-grid">
+              <input type="text" id="giftName" placeholder="Naam van het cadeau *" />
+              <input type="text" id="giftPrice" placeholder="Prijs in euro (bijv. 25,00)" />
+              <input type="url" id="giftUrl" placeholder="Weblink (https://...) — prijs wordt automatisch gezocht" />
+              <input type="text" id="giftNote" placeholder="Extra info (maat, kleur, winkel...)" />
+            </div>
+            <div id="priceLookupStatus" style="font-size:0.8rem; color:var(--text-muted); margin-bottom:10px; min-height:18px;"></div>
+            <div style="display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap;">
+              <button type="button" class="btn-outline btn-sm" id="fetchPriceBtn" onclick="autoFillPriceFromUrl(true)">💶 Prijs ophalen via URL</button>
+              <button type="button" class="btn-outline btn-sm hidden" id="cancelEditBtn" onclick="cancelEdit()">Annuleren</button>
+              <button type="button" class="btn-gold" id="saveGiftBtn" onclick="saveGift()">🎁 Toevoegen aan lijst</button>
+            </div>
+          </div>
+
+          <div class="gift-list" id="giftListContainer"></div>
+        </div>
+      </div>
+
+      <!-- TAB 2: MIJN GEKOCHTE CADEAUS -->
+      <div id="purchasesSection" class="hidden">
+        <div class="card">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:16px;">
+            <h2 style="color: var(--gold); font-size: 1.3rem;">🛍️ Door jou gekochte kerstcadeaus</h2>
+            <span class="badge" id="totalSpentBadge">Totaal: € 0,00</span>
+          </div>
+          <div class="gift-list" id="myPurchasesContainer"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: GEDEELDE CLOUD-OPSLAG INSTELLEN -->
+  <div id="cloudModal" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <h3>☁️ Gedeelde opslag voor alle familieleden</h3>
+      <p style="margin-bottom: 10px;">
+        Koppel een gratis <strong>Firebase Realtime Database</strong> zodat elk familielid op zijn eigen gsm of laptop dezelfde lijstjes en pincodes deelt:
+      </p>
+      <ol>
+        <li>Ga naar <strong>console.firebase.google.com</strong> en maak een nieuw gratis project aan.</li>
+        <li>Ga in het menu naar <strong>Build &gt; Realtime Database</strong> en klik op <strong>Create Database</strong> (kies <em>Start in test mode</em>).</li>
+        <li>Kopieer de database-URL (eindigt op <code>.firebaseio.com</code> of <code>.firebasedatabase.app</code>) en plak die hieronder.</li>
+        <li>Klik op <strong>Opslaan &amp; Deel-link kopiëren</strong> en stuur die link door naar de familie (dan staat de cloudkoppeling bij iedereen meteen juist!).</li>
+      </ol>
+      <input type="url" id="firebaseUrlInput" placeholder="https://jouw-project-default-rtdb.europe-west1.firebasedatabase.app" style="margin-bottom: 12px;" />
+      <div style="margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.12);">
+        <label style="display:block; font-size:0.84rem; color:var(--gold); font-weight:700; margin-bottom:6px;">🔐 Familie-toegangscode (tegen onbekenden)</label>
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="appAccessCodeSetting" placeholder="Bijv. KERST2026" />
+          <button class="btn-green btn-sm" onclick="updateAppAccessCode()">Code opslaan</button>
+        </div>
+      </div>
+      <div id="cloudStatusMsg" style="font-size:0.83rem; color:#6ee7b7; margin:12px 0;"></div>
+      <div style="display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap;">
+        <button class="btn-outline btn-sm" onclick="closeCloudModal()">Sluiten</button>
+        <button class="btn-outline btn-sm" onclick="copyShareLink()">🔗 Kopieer deel-link</button>
+        <button class="btn-gold btn-sm" onclick="saveCloudConfig()">💾 Opslaan &amp; Synchroniseren</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "familie_kerst_verlanglijstjes_v7";
+    const ACTIVE_FAMILY_KEY = "familie_kerst_active_family_v1";
+    const CLOUD_URL_KEY = "familie_kerst_firebase_url_v1";
+    const ACCESS_GRANTED_KEY = "familie_kerst_access_granted_v1";
+    const DEFAULT_APP_ACCESS_CODE = "KERST2026";
+    const channel = ("BroadcastChannel" in window) ? new BroadcastChannel("kerst_verlanglijst_sync") : null;
+
+    // Vaste Firebase Realtime Database URL voor alle gebruikers
+    const HARDCODED_FIREBASE_URL = "https://test-a5505-default-rtdb.europe-west1.firebasedatabase.app";
+
+    const DEFAULT_FAMILY_NAME = "Familie De Cock";
+
+    const DEFAULT_MEMBERS = [
+      "Papa", "Annick", "Nele", "Pieter", "Jan", "Veronique", "Otto", "Océane", "Bjorn", "Lieselot"
+    ];
+
+    // Gedeelde basis-cadeaulijstjes die over families heen beschikbaar zijn en per familie worden aangevuld/gesynchroniseerd
+    const DEFAULT_SHARED_GIFTS = [
+      // Otto
+      { id: "o1", owner: "Otto", title: "Stapelblokken", price: "", url: "https://www.kruidvat.be/nl/stapelblokken/p/6269296", note: "Kruidvat", boughtBy: null, boughtByFamily: null },
+      { id: "o2", owner: "Otto", title: "Connetix magnetic tiles", price: "", url: "", note: "Extra tegels zodat we groter kunnen bouwen of een knikkerbaan", boughtBy: null, boughtByFamily: null },
+      { id: "o3", owner: "Otto", title: "Bumba speelt verstoppertje", price: "", url: "https://www.kruidvat.be/nl/studio-100-bumba-verstoppertje-spelen/p/3850113", note: "Kruidvat", boughtBy: null, boughtByFamily: null },
+      { id: "o4", owner: "Otto", title: "Bumba geluiden spel", price: "", url: "", note: "", boughtBy: null, boughtByFamily: null },
+      { id: "o5", owner: "Otto", title: "Skipak maat 86", price: "", url: "", note: "Maat 86", boughtBy: null, boughtByFamily: null },
+      { id: "o6", owner: "Otto", title: "Fietshelm Scoot and Ride", price: "", url: "https://www.babylux.be/nl/kinderhelm-xxs-s-scoot-and-ride.html", note: "Maat XXS-S", boughtBy: null, boughtByFamily: null },
+      { id: "o7", owner: "Otto", title: "Hondje Diggles", price: "", url: "https://www.dreamland.be/nl/producten/diggles/01746082", note: "DreamLand", boughtBy: null, boughtByFamily: null },
+      { id: "o8", owner: "Otto", title: "Mijn eerste kassa", price: "", url: "https://www.dreamland.be/nl/producten/mijn-eerste-kassa/01614404", note: "DreamLand", boughtBy: null, boughtByFamily: null },
+      { id: "o9", owner: "Otto", title: "Auto('s)", price: "", url: "", note: "", boughtBy: null, boughtByFamily: null },
+      { id: "o10", owner: "Otto", title: "Boekje(s)", price: "", url: "", note: "", boughtBy: null, boughtByFamily: null },
+
+      // Koen
+      { id: "k1", owner: "Papa", title: "Staande lamp voor achter zetel", price: "", url: "", note: "Zelfde type als er nu staat, maar met LED warm-white + leeslampje (zonder tafeltje)", boughtBy: null, boughtByFamily: null },
+      { id: "k2", owner: "Papa", title: "Braun MultiQuick 5 Pro (MQ 55254 M)", price: "99.99", url: "", note: "Handmixer en cutter 6-in-1, 1000W", boughtBy: null, boughtByFamily: null },
+      { id: "k3", owner: "Papa", title: "Braun MultiQuick 5 staafmixer (MQ50202M)", price: "61.99", url: "", note: "Zwart, met hakmolen", boughtBy: null, boughtByFamily: null },
+      { id: "k4", owner: "Papa", title: "Kodak Slide and Scan Digitale Filmscanner", price: "", url: "", note: "Apparaat om dia's en negatieven te digitaliseren (5 inch scherm)", boughtBy: null, boughtByFamily: null },
+      { id: "k5", owner: "Papa", title: "Kookboek: Proeven van Italië", price: "", url: "", note: "François-Régis Gaudry & vrienden (Uitgeverij Lannoo)", boughtBy: null, boughtByFamily: null },
+      { id: "k6", owner: "Papa", title: "Terre d'Hermès (Eau de toilette, deo of aftershave balsem)", price: "", url: "", note: "", boughtBy: null, boughtByFamily: null },
+      { id: "k7", owner: "Papa", title: "Een lekker flesje wijn", price: "", url: "", note: "", boughtBy: null, boughtByFamily: null },
+
+      // Jan
+      { id: "j1", owner: "Jan", title: "Computerspel Railway Empire II (PC)", price: "", url: "", note: "", boughtBy: null, boughtByFamily: null },
+      { id: "j2", owner: "Jan", title: "Computerspel Battlefield 6 (PC)", price: "", url: "", note: "", boughtBy: null, boughtByFamily: null },
+      { id: "j3", owner: "Jan", title: "Babyfoon Philips SCD 921/926", price: "", url: "", note: "", boughtBy: null, boughtByFamily: null },
+      { id: "j4", owner: "Jan", title: "2dehands sterrenkijker", price: "", url: "", note: "", boughtBy: null, boughtByFamily: null },
+      { id: "j5", owner: "Jan", title: "Wandhouder voor bezems", price: "", url: "", note: "", boughtBy: null, boughtByFamily: null },
+      { id: "j6", owner: "Jan", title: "Adidas Entrada shorts - zwart", price: "", url: "", note: "Maat L", boughtBy: null, boughtByFamily: null },
+      { id: "j7", owner: "Jan", title: "Wedze warme & waterdichte ski/snowboardjas 500", price: "", url: "", note: "Heren, blauw/zwart, maat L", boughtBy: null, boughtByFamily: null },
+      { id: "j8", owner: "Jan", title: "Wedze Nekwarmers Firstheat zwart", price: "", url: "", note: "Volwassenen", boughtBy: null, boughtByFamily: null },
+      { id: "j9", owner: "Jan", title: "Perfly overgrip badminton superior zwart (set van 3)", price: "", url: "", note: "Decathlon", boughtBy: null, boughtByFamily: null },
+      { id: "j10", owner: "Jan", title: "Cadeaubon MediaMarkt / Vanden Borre", price: "", url: "", note: "Voor aankoop nieuwe GSM", boughtBy: null, boughtByFamily: null },
+      { id: "j11", owner: "Jan", title: "VH infrarood paneel vouwbaar (175W)", price: "", url: "https://www.brico.be/nl/verwarmingen-airco-s/bijverwarming/stralingspanelen-infraroodpanelen/vh-infrarood-paneel-vouwbaar-175-watt-51-x-101-cm-3-standen-met-timer/10385863", note: "51 x 101 cm, 3 standen met timer (Brico)", boughtBy: null, boughtByFamily: null },
+      { id: "j12", owner: "Jan", title: "Fling Smart infrarood verwarmingspaneel (600W)", price: "", url: "https://www.brico.be/nl/verwarmingen-airco-s/bijverwarming/stralingspanelen-infraroodpanelen/fling-smart-infrarood-paneelverwarmer-600w-wit/10599206", note: "Wit (Brico)", boughtBy: null, boughtByFamily: null },
+
+      // Lieselot
+      { id: "l1", owner: "Lieselot", title: "Puzzelboekjes", price: "", url: "", note: "Tectonic, zeeslag, tentje-boompje, binair, mozaïek, ...", boughtBy: null, boughtByFamily: null },
+
+      // Pieter
+      { id: "p1", owner: "Pieter", title: "Cadeaubon A.S. Adventure", price: "", url: "", note: "", boughtBy: null, boughtByFamily: null },
+      { id: "p2", owner: "Pieter", title: "Boekenbon van boekenhandel 't Stad Leest", price: "", url: "", note: "", boughtBy: null, boughtByFamily: null },
+
+      // Nele
+      { id: "n1", owner: "Nele", title: "Cadeaubon MediaMarkt / Vanden Borre", price: "", url: "", note: "", boughtBy: null, boughtByFamily: null },
+      { id: "n2", owner: "Nele", title: "Nieuwe Chromecast", price: "", url: "", note: "", boughtBy: null, boughtByFamily: null },
+      { id: "n3", owner: "Nele", title: "Loop Dream earplugs", price: "", url: "", note: "Zwart of blauw", boughtBy: null, boughtByFamily: null },
+      { id: "n4", owner: "Nele", title: "Nieuwe fietstas", price: "", url: "", note: "", boughtBy: null, boughtByFamily: null },
+      { id: "n5", owner: "Nele", title: "AXA ringslot Block XXL + hulp bij installatie", price: "", url: "https://www.bol.com/nl/nl/p/axa-ringslot-block-xxl/9200000084169679/", note: "En iemand om het te helpen installeren", boughtBy: null, boughtByFamily: null },
+      { id: "n6", owner: "Nele", title: "Powerbank", price: "", url: "", note: "", boughtBy: null, boughtByFamily: null },
+      { id: "n7", owner: "Nele", title: "Keukentrolley", price: "", url: "", note: "Max. 70 cm breed - 35 cm diep", boughtBy: null, boughtByFamily: null },
+
+      // Veronique
+      { id: "v1", owner: "Veronique", title: "Stoov extra batterij (S3)", price: "", url: "https://stoov.com/nl/products/battery-s3?variant=56676375167357", note: "", boughtBy: null, boughtByFamily: null },
+      { id: "v2", owner: "Veronique", title: "Paradijsvogelplant (Strelitzia nicolai)", price: "", url: "", note: "", boughtBy: null, boughtByFamily: null },
+      { id: "v3", owner: "Veronique", title: "Rugzakje Iris (Beige)", price: "", url: "https://bearlifestyle.nl/products/rugzakje-iris-beige-cl-32852", note: "Bear Lifestyle", boughtBy: null, boughtByFamily: null },
+      { id: "v4", owner: "Veronique", title: "Cadeaubon Brico of Hubo", price: "", url: "", note: "", boughtBy: null, boughtByFamily: null },
+
+      // Bjorn
+      { id: "b1", owner: "Bjorn", title: "Desktop cleaning kit", price: "", url: "", note: "", boughtBy: null, boughtByFamily: null },
+      { id: "b2", owner: "Bjorn", title: "Sportsokken", price: "", url: "", note: "", boughtBy: null, boughtByFamily: null },
+      { id: "b3", owner: "Bjorn", title: "Sportshort van Victor / Forza", price: "", url: "", note: "Maat XL", boughtBy: null, boughtByFamily: null },
+      { id: "b4", owner: "Bjorn", title: "Mandoline / groentesnijder", price: "", url: "", note: "", boughtBy: null, boughtByFamily: null },
+      { id: "b5", owner: "Bjorn", title: "Avalo voetensteun stof", price: "", url: "https://www.bol.com/be/nl/p/avalo-voetensteun-stof/9300000169677701/", note: "Bol.com", boughtBy: null, boughtByFamily: null },
+      { id: "b6", owner: "Bjorn", title: "Kadonation cadeaubon", price: "", url: "", note: "", boughtBy: null, boughtByFamily: null },
+      { id: "b7", owner: "Bjorn", title: "Oil & Vinegar bon of cadeaumandje", price: "", url: "", note: "", boughtBy: null, boughtByFamily: null },
+
+      // Océane
+      { id: "oc1", owner: "Océane", title: "JBL Clip (liefst in het blauw)", price: "", url: "", note: "Kleur: blauw", boughtBy: null, boughtByFamily: null },
+      { id: "oc2", owner: "Océane", title: "Reizen drinkbus", price: "", url: "", note: "", boughtBy: null, boughtByFamily: null },
+      { id: "oc3", owner: "Océane", title: "Statief", price: "", url: "", note: "", boughtBy: null, boughtByFamily: null },
+      { id: "oc4", owner: "Océane", title: "The North Face sleutelhanger", price: "", url: "", note: "", boughtBy: null, boughtByFamily: null },
+      { id: "oc5", owner: "Océane", title: "The North Face toilettas", price: "", url: "", note: "", boughtBy: null, boughtByFamily: null },
+      { id: "oc6", owner: "Océane", title: "Cash geld in YEN", price: "", url: "", note: "Voor reis naar Japan", boughtBy: null, boughtByFamily: null },
+      { id: "oc7", owner: "Océane", title: "The North Face Duffel Bag S", price: "", url: "", note: "Maat S", boughtBy: null, boughtByFamily: null },
+      { id: "oc8", owner: "Océane", title: "Europese-Japanse adapter", price: "", url: "", note: "", boughtBy: null, boughtByFamily: null },
+      { id: "oc9", owner: "Océane", title: "Capitool Reisgids Japan", price: "", url: "https://www.bol.com/be/nl/p/capitool-reisgidsen-japan/9300000247547980/", note: "Bol.com", boughtBy: null, boughtByFamily: null }
+    ];
+
+    function makeDefaultFamilyObj(options = {}) {
+      return {
+        members: options.members ? [...options.members] : [...DEFAULT_MEMBERS],
+        pins: options.pins ? { ...options.pins } : {},
+        isPrivate: Boolean(options.isPrivate),
+        createdBy: options.createdBy || null
+      };
+    }
+
+    function createInitialRootState() {
+      return {
+        appAccessCode: DEFAULT_APP_ACCESS_CODE,
+        families: {
+          [DEFAULT_FAMILY_NAME]: makeDefaultFamilyObj()
+        },
+        sharedGifts: JSON.parse(JSON.stringify(DEFAULT_SHARED_GIFTS))
+      };
+    }
+
+    let cloudBaseUrl = detectCloudUrl();
+    let activeFamily = localStorage.getItem(ACTIVE_FAMILY_KEY) || DEFAULT_FAMILY_NAME;
+    let rootState = loadLocalRootState();
+    let currentUser = null;
+    let pendingUser = null;
+    let selectedPerson = null;
+    let currentTab = "lists";
+    let pollTimer = null;
+
+    let invitedFamilyFromUrl = null;
+
+    function detectInviteFamilyFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      const famParam = (params.get("fam") || "").trim();
+      if (famParam) {
+        invitedFamilyFromUrl = famParam;
+        return famParam;
+      }
+      return null;
+    }
+
+    function detectCloudUrl() {
+      detectInviteFamilyFromUrl();
+      const params = new URLSearchParams(window.location.search);
+      const fromUrl = params.get("db");
+      if (fromUrl) {
+        const cleaned = normalizeFirebaseUrl(fromUrl);
+        localStorage.setItem(CLOUD_URL_KEY, cleaned);
+        return cleaned;
+      }
+      if (HARDCODED_FIREBASE_URL) return normalizeFirebaseUrl(HARDCODED_FIREBASE_URL);
+      return normalizeFirebaseUrl(localStorage.getItem(CLOUD_URL_KEY) || "");
+    }
+
+    function normalizeFirebaseUrl(url) {
+      let u = String(url || "").trim();
+      if (!u) return "";
+      u = u.replace(/\/+$/, "");
+      if (u.endsWith(".json")) u = u.slice(0, -5);
+      return u;
+    }
+
+    function getEndpoint() {
+      if (!cloudBaseUrl) return "";
+      return `${cloudBaseUrl}/kerst2026_multi.json`;
+    }
+
+    function normalizeRootState(parsed) {
+      const base = createInitialRootState();
+      if (!parsed || typeof parsed !== "object") return base;
+      if (typeof parsed.appAccessCode === "string" && parsed.appAccessCode.trim()) {
+        base.appAccessCode = parsed.appAccessCode.trim();
+      }
+
+      if (parsed.families && typeof parsed.families === "object") {
+        Object.entries(parsed.families).forEach(([famName, famData]) => {
+          if (!famName || typeof famData !== "object") return;
+          base.families[famName] = {
+            members: Array.isArray(famData.members) && famData.members.length > 0 ? [...famData.members] : [],
+            pins: (famData.pins && typeof famData.pins === "object") ? { ...famData.pins } : {},
+            isPrivate: Boolean(famData.isPrivate),
+            createdBy: (famData.createdBy && typeof famData.createdBy === "object") ? { ...famData.createdBy } : null
+          };
+        });
+      } else if (Array.isArray(parsed.members)) {
+        // Migratie vanuit ouder enkel-familie formaat
+        base.families[DEFAULT_FAMILY_NAME] = {
+          members: [...parsed.members],
+          pins: (parsed.pins && typeof parsed.pins === "object") ? { ...parsed.pins } : {}
+        };
+      }
+
+      if (!Object.keys(base.families).length) {
+        base.families[DEFAULT_FAMILY_NAME] = makeDefaultFamilyObj();
+      }
+
+      if (Array.isArray(parsed.sharedGifts)) {
+        base.sharedGifts = parsed.sharedGifts.map(g => ({
+          ...g,
+          boughtBy: g.boughtBy || null,
+          boughtByFamily: g.boughtByFamily || null
+        }));
+      } else if (Array.isArray(parsed.gifts)) {
+        base.sharedGifts = parsed.gifts.map(g => ({
+          ...g,
+          boughtBy: g.boughtBy || null,
+          boughtByFamily: g.boughtByFamily || DEFAULT_FAMILY_NAME
+        }));
+      }
+
+      return base;
+    }
+
+    function loadLocalRootState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          return normalizeRootState(JSON.parse(raw));
+        }
+        // Fallback op vorige v6 data indien aanwezig
+        const legacyRaw = localStorage.getItem("familie_kerst_verlanglijstjes_v6");
+        if (legacyRaw) {
+          return normalizeRootState(JSON.parse(legacyRaw));
+        }
+      } catch (e) {}
+      return createInitialRootState();
+    }
+
+    const LAST_USER_KEY = "familie_kerst_last_user_v1";
+
+    function getViewerName() {
+      if (currentUser) return currentUser;
+      try {
+        const raw = sessionStorage.getItem(LAST_USER_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && parsed.user) return parsed.user;
+        }
+      } catch (e) {}
+      return null;
+    }
+
+    function canSeeFamily(famName) {
+      const fam = rootState.families && rootState.families[famName];
+      if (!fam) return false;
+      if (!fam.isPrivate) return true;
+      if (invitedFamilyFromUrl && famName.toLowerCase() === invitedFamilyFromUrl.toLowerCase()) {
+        return true;
+      }
+      const viewer = getViewerName();
+      if (!viewer) return false;
+      const viewerLower = viewer.toLowerCase();
+      if (fam.createdBy && fam.createdBy.user && fam.createdBy.user.toLowerCase() === viewerLower) {
+        return true;
+      }
+      if (Array.isArray(fam.members) && fam.members.some(m => m.toLowerCase() === viewerLower)) {
+        return true;
+      }
+      return false;
+    }
+
+    function getVisibleFamilyNames() {
+      const names = Object.keys(rootState.families || {}).filter(canSeeFamily);
+      if (names.length > 0) return names;
+      if (!rootState.families[DEFAULT_FAMILY_NAME]) {
+        rootState.families[DEFAULT_FAMILY_NAME] = makeDefaultFamilyObj();
+      }
+      return [DEFAULT_FAMILY_NAME];
+    }
+
+    function ensureActiveFamily() {
+      const visibleNames = getVisibleFamilyNames();
+      if (!visibleNames.includes(activeFamily)) {
+        activeFamily = visibleNames.includes(DEFAULT_FAMILY_NAME) ? DEFAULT_FAMILY_NAME : visibleNames[0];
+        if (!rootState.families[activeFamily]) {
+          rootState.families[activeFamily] = makeDefaultFamilyObj();
+        }
+      }
+      localStorage.setItem(ACTIVE_FAMILY_KEY, activeFamily);
+      return rootState.families[activeFamily];
+    }
+
+
+    function parsePrice(priceStr) {
+      if (!priceStr) return null;
+      const cleaned = String(priceStr)
+        .replace(/€/g, "")
+        .replace(/\s+/g, "")
+        .replace(",", ".");
+      if (!/^\d+(\.\d+)?$/.test(cleaned)) return null;
+      const num = parseFloat(cleaned);
+      return isNaN(num) ? null : num;
+    }
+
+    function formatEuro(num) {
+      return `€ ${Number(num || 0).toFixed(2).replace(".", ",")}`;
+    }
+
+    function renderPriceBadge(priceStr) {
+      const parsed = parsePrice(priceStr);
+      if (parsed !== null) {
+        return `<span class="price-pill">${escapeHtml(formatEuro(parsed))}</span>`;
+      }
+      if (priceStr && String(priceStr).trim()) {
+        return `<span class="price-pill">${escapeHtml(String(priceStr).trim())}</span>`;
+      }
+      return `<span class="price-unpriced">Prijs n.t.b.</span>`;
+    }
+
+    function updateSyncBadge(statusText, isLive) {
+      const badge = document.getElementById("syncBadge");
+      badge.textContent = statusText;
+      badge.classList.toggle("badge-live", Boolean(isLive));
+    }
+
+    async function pullFromCloud(silent = false) {
+      const endpoint = getEndpoint();
+      if (!endpoint) {
+        updateSyncBadge("☁️ Lokaal (koppel cloud)", false);
+        return;
+      }
+      if (!silent) updateSyncBadge("🔄 Synchroniseren...", true);
+      try {
+        const res = await fetch(endpoint, { cache: "no-store" });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+        if (data && typeof data === "object") {
+          rootState = normalizeRootState(data);
+          ensureActiveFamily();
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(rootState));
+          if (!checkAndRenderAccessGate()) {
+            // Wacht op toegangscode
+          } else if (currentUser && !ensureActiveFamily().members.includes(currentUser)) {if (currentUser && !ensureActiveFamily().members.includes(currentUser)) {
+            logout(true);
+          } else if (currentUser) {
+            renderApp();
+          } else {
+            renderLogin();
+          }
+        } else if (data === null) {
+          await pushToCloud();
+        }
+        updateSyncBadge("🟢 Live gedeeld (Cloud)", true);
+      } catch (err) {
+        updateSyncBadge("⚠️ Cloud offline (lokaal actief)", false);
+      }
+    }
+
+    async function pushToCloud() {
+      ensureActiveFamily();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(rootState));
+      if (channel) channel.postMessage({ type: "SYNC", rootState, activeFamily });
+
+      const endpoint = getEndpoint();
+      if (!endpoint) return;
+      updateSyncBadge("🔄 Opslaan in cloud...", true);
+      try {
+        const res = await fetch(endpoint, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(rootState)
+        });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        updateSyncBadge("🟢 Live gedeeld (Cloud)", true);
+      } catch (err) {
+        updateSyncBadge("⚠️ Cloud fout (opgeslagen op toestel)", false);
+      }
+    }
+
+    function syncNow() {
+      pullFromCloud(false);
+    }
+
+    function startPolling() {
+      if (pollTimer) clearInterval(pollTimer);
+      pollTimer = setInterval(() => {
+        if (cloudBaseUrl && document.visibilityState === "visible") {
+          pullFromCloud(true);
+        }
+      }, 12000);
+    }
+
+    if (channel) {
+      channel.onmessage = (event) => {
+        if (event.data && event.data.type === "SYNC" && event.data.rootState) {
+          rootState = normalizeRootState(event.data.rootState);
+          ensureActiveFamily();
+          if (currentUser) renderApp();
+          else renderLogin();
+        }
+      };
+    }
+
+    // Cloud Modal functies
+
+    function getExpectedAccessCode() {
+      return (rootState && rootState.appAccessCode) ? String(rootState.appAccessCode).trim() : DEFAULT_APP_ACCESS_CODE;
+    }
+
+    function hasAppAccess() {
+      const expected = getExpectedAccessCode();
+      const params = new URLSearchParams(window.location.search);
+      const urlCode = (params.get("code") || "").trim();
+      if (urlCode && urlCode.toLowerCase() === expected.toLowerCase()) {
+        localStorage.setItem(ACCESS_GRANTED_KEY, expected);
+        return true;
+      }
+      const saved = (localStorage.getItem(ACCESS_GRANTED_KEY) || "").trim();
+      return Boolean(saved && saved.toLowerCase() === expected.toLowerCase());
+    }
+
+    function checkAndRenderAccessGate() {
+      const gateEl = document.getElementById("accessGateView");
+      const loginEl = document.getElementById("loginView");
+      const appEl = document.getElementById("appView");
+      if (hasAppAccess()) {
+        gateEl.classList.add("hidden");
+        if (currentUser) {
+          loginEl.classList.add("hidden");
+          appEl.classList.remove("hidden");
+        } else {
+          appEl.classList.add("hidden");
+          loginEl.classList.remove("hidden");
+        }
+        return true;
+      } else {
+        currentUser = null;
+        pendingUser = null;
+        appEl.classList.add("hidden");
+        loginEl.classList.add("hidden");
+        document.getElementById("logoutBtn").classList.add("hidden");
+        document.getElementById("userBadge").classList.add("hidden");
+        gateEl.classList.remove("hidden");
+        return false;
+      }
+    }
+
+    function submitAccessCode() {
+      const inp = document.getElementById("accessCodeInput");
+      const err = document.getElementById("accessGateError");
+      const entered = (inp.value || "").trim();
+      const expected = getExpectedAccessCode();
+      if (!entered || entered.toLowerCase() !== expected.toLowerCase()) {
+        err.textContent = "Ongeldige toegangscode. Vraag de juiste code of deel-link aan Jan.";
+        err.classList.remove("hidden");
+        return;
+      }
+      err.classList.add("hidden");
+      localStorage.setItem(ACCESS_GRANTED_KEY, expected);
+      inp.value = "";
+      checkAndRenderAccessGate();
+      renderLogin();
+    }
+
+    async function updateAppAccessCode() {
+      const inp = document.getElementById("appAccessCodeSetting");
+      const val = (inp.value || "").trim();
+      if (val.length < 4) {
+        alert("Kies een toegangscode van minstens 4 tekens.");
+        return;
+      }
+      rootState.appAccessCode = val;
+      localStorage.setItem(ACCESS_GRANTED_KEY, val);
+      await pushToCloud();
+      document.getElementById("cloudStatusMsg").textContent = "✅ Nieuwe familie-toegangscode opgeslagen!";
+    }
+
+    function openCloudModal() {
+      document.getElementById("firebaseUrlInput").value = cloudBaseUrl || "";
+      const codeInput = document.getElementById("appAccessCodeSetting");
+      if (codeInput) codeInput.value = getExpectedAccessCode();
+      document.getElementById("cloudStatusMsg").textContent = cloudBaseUrl
+        ? "Actieve database gekoppeld."
+        : "Nog geen cloud-URL ingesteld.";
+      document.getElementById("cloudModal").classList.remove("hidden");
+    }
+
+    function closeCloudModal() {
+      document.getElementById("cloudModal").classList.add("hidden");
+    }
+
+    async function saveCloudConfig() {
+      const val = normalizeFirebaseUrl(document.getElementById("firebaseUrlInput").value);
+      cloudBaseUrl = val;
+      if (val) {
+        localStorage.setItem(CLOUD_URL_KEY, val);
+        document.getElementById("cloudStatusMsg").textContent = "Verbinden met cloud...";
+        await pullFromCloud(false);
+        document.getElementById("cloudStatusMsg").textContent = "✅ Gekoppeld en gesynchroniseerd!";
+      } else {
+        localStorage.removeItem(CLOUD_URL_KEY);
+        updateSyncBadge("☁️ Lokaal (koppel cloud)", false);
+        document.getElementById("cloudStatusMsg").textContent = "Cloudkoppeling verwijderd.";
+      }
+    }
+
+    function copyShareLink() {
+      const url = new URL(window.location.origin + window.location.pathname);
+      url.searchParams.set("code", getExpectedAccessCode());
+      if (cloudBaseUrl && cloudBaseUrl !== HARDCODED_FIREBASE_URL) {
+        url.searchParams.set("db", cloudBaseUrl);
+      }
+      const shareUrl = url.toString();
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(shareUrl).then(() => {
+          document.getElementById("cloudStatusMsg").textContent = "📋 Deel-link gekopieerd naar klembord!";
+        });
+      } else {
+        prompt("Kopieer deze link voor de familie:", shareUrl);
+      }
+    }
+
+    function getFamilyInviteUrl(famName = activeFamily) {
+      const url = new URL(window.location.origin + window.location.pathname);
+      if (famName) url.searchParams.set("fam", famName);
+      url.searchParams.set("code", getExpectedAccessCode());
+      if (cloudBaseUrl && cloudBaseUrl !== HARDCODED_FIREBASE_URL) {
+        url.searchParams.set("db", cloudBaseUrl);
+      }
+      return url.toString();
+    }
+
+    function copyFamilyInviteLink() {
+      const inviteUrl = getFamilyInviteUrl(activeFamily);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(inviteUrl).then(() => {
+          alert(`Uitnodigingslink voor "${activeFamily}" gekopieerd:\n${inviteUrl}`);
+        }).catch(() => {
+          prompt(`Kopieer de uitnodigingslink voor "${activeFamily}":`, inviteUrl);
+        });
+      } else {
+        prompt(`Kopieer de uitnodigingslink voor "${activeFamily}":`, inviteUrl);
+      }
+    }
+
+    async function resetToDefaultGifts() {
+      if (!confirm("Wil je de standaard cadeaulijstjes uit de kerst-PDF opnieuw inladen? (Pincodes blijven bewaard)")) return;
+      const fam = ensureActiveFamily();
+      if (!fam.members || fam.members.length === 0) {
+        fam.members = [...DEFAULT_MEMBERS];
+      }
+      rootState.sharedGifts = JSON.parse(JSON.stringify(DEFAULT_SHARED_GIFTS));
+      await pushToCloud();
+      if (currentUser) renderApp();
+      else renderLogin();
+    }
+
+    // Kerstsfeer: lichtjes & sneeuw
+    function initDecorations() {
+      const lights = document.getElementById("lights");
+      for (let i = 0; i < 24; i++) {
+        const b = document.createElement("div");
+        b.className = "bulb";
+        lights.appendChild(b);
+      }
+      const snow = document.getElementById("snow");
+      const flakes = ["❄", "❅", "❆", "•"];
+      for (let i = 0; i < 28; i++) {
+        const f = document.createElement("div");
+        f.className = "snowflake";
+        f.textContent = flakes[i % flakes.length];
+        f.style.left = Math.random() * 100 + "vw";
+        f.style.fontSize = (10 + Math.random() * 14) + "px";
+        f.style.animationDuration = (7 + Math.random() * 11) + "s";
+        f.style.animationDelay = (-Math.random() * 12) + "s";
+        snow.appendChild(f);
+      }
+    }
+
+    function updateFamilyBadge() {
+      const fb = document.getElementById("familyBadge");
+      if (fb) fb.textContent = `👨‍👩‍👧‍👦 ${activeFamily}`;
+    }
+
+    async function switchFamily(famName) {
+      if (!famName || !rootState.families[famName]) return;
+      if (invitedFamilyFromUrl && famName.toLowerCase() !== invitedFamilyFromUrl.toLowerCase()) {
+        invitedFamilyFromUrl = null;
+      }
+      activeFamily = famName;
+      localStorage.setItem(ACTIVE_FAMILY_KEY, activeFamily);
+      updateFamilyBadge();
+      if (currentUser) {
+        await logout(true);
+      } else {
+        cancelPin();
+        renderLogin();
+      }
+    }
+
+    async function addNewFamily() {
+      const inp = document.getElementById("newFamilyName");
+      const rawName = inp.value.trim();
+      if (!rawName) return;
+      const creatorUser = getViewerName();
+      const creatorFamily = activeFamily;
+      const existingKey = Object.keys(rootState.families).find(k => k.toLowerCase() === rawName.toLowerCase());
+      if (existingKey) {
+        if (!canSeeFamily(existingKey)) {
+          alert("Deze familienaam bestaat al en is privé.");
+          return;
+        }
+        activeFamily = existingKey;
+        localStorage.setItem(ACTIVE_FAMILY_KEY, activeFamily);
+        inp.value = "";
+        updateFamilyBadge();
+        renderLogin();
+        return;
+      }
+      rootState.families[rawName] = makeDefaultFamilyObj({
+        members: [],
+        pins: {},
+        isPrivate: Boolean(creatorUser),
+        createdBy: creatorUser ? { family: creatorFamily, user: creatorUser } : null
+      });
+      activeFamily = rawName;
+      localStorage.setItem(ACTIVE_FAMILY_KEY, activeFamily);
+      inp.value = "";
+      cancelPin();
+      updateFamilyBadge();
+      await pushToCloud();
+      renderLogin();
+    }
+
+    // Login logica + verwijderknop per familielid binnen actieve familie
+    function renderLogin() {
+      updateFamilyBadge();
+      const fam = ensureActiveFamily();
+      const sel = document.getElementById("familySelect");
+      if (sel) {
+        sel.innerHTML = "";
+        getVisibleFamilyNames().forEach(famName => {
+          const famObj = rootState.families[famName];
+          const opt = document.createElement("option");
+          opt.value = famName;
+          opt.textContent = famObj && famObj.isPrivate ? `🔒 ${famName}` : famName;
+          opt.selected = famName === activeFamily;
+          sel.appendChild(opt);
+        });
+      }
+
+      document.getElementById("loginHeading").textContent = `🎅 Wie ben jij? (${activeFamily})`;
+      document.getElementById("loginSubtitle").textContent = fam.members.length > 0
+        ? `Kies je naam in ${activeFamily}. Bij je eerste bezoek stel je een persoonlijke pincode van 4 cijfers in.`
+        : `Er staan nog geen leden in ${activeFamily}. Voeg hieronder je eerste familielid toe!`;
+
+      const grid = document.getElementById("memberGrid");
+      grid.innerHTML = "";
+      if (fam.members.length === 0) {
+        grid.innerHTML = `<p style="grid-column: 1 / -1; color: var(--text-muted); font-size: 0.88rem; padding: 10px;">Nog geen leden in deze familie.</p>`;
+        return;
+      }
+
+      fam.members.forEach(name => {
+        const hasPin = Boolean(fam.pins && fam.pins[name]);
+        const card = document.createElement("div");
+        card.className = "member-card";
+        card.onclick = () => selectMemberForLogin(name);
+
+        const delBtn = document.createElement("button");
+        delBtn.type = "button";
+        delBtn.className = "member-delete-btn";
+        delBtn.textContent = "🗑️";
+        delBtn.title = `Verwijder ${name} uit ${activeFamily}`;
+        delBtn.onclick = (e) => {
+          e.stopPropagation();
+          deleteMember(name);
+        };
+
+        card.innerHTML = `
+          <span class="avatar">${hasPin ? "🔒" : "🎄"}</span>
+          <strong>${escapeHtml(name)}</strong>
+          <span class="pin-tag">${hasPin ? "Pincode actief" : "Kies pincode"}</span>
+        `;
+        card.appendChild(delBtn);
+        grid.appendChild(card);
+      });
+    }
+
+    async function deleteMember(name) {
+      if (!confirm(`Weet je zeker dat je "${name}" wilt verwijderen uit ${activeFamily} (inclusief pincode)?`)) return;
+      const fam = ensureActiveFamily();
+      fam.members = fam.members.filter(m => m !== name);
+      if (fam.pins && Object.prototype.hasOwnProperty.call(fam.pins, name)) {
+        delete fam.pins[name];
+      }
+      if (pendingUser === name) {
+        cancelPin();
+      }
+      if (currentUser === name) {
+        await logout(true);
+      }
+      await pushToCloud();
+      renderLogin();
+    }
+
+    function selectMemberForLogin(name) {
+      const fam = ensureActiveFamily();
+      pendingUser = name;
+      const hasPin = Boolean(fam.pins && fam.pins[name]);
+      document.getElementById("pinPanel").classList.remove("hidden");
+      document.getElementById("pinTitle").textContent = hasPin
+        ? `Welkom terug, ${name} (${activeFamily})!`
+        : `Hoi ${name}, stel je pincode in`;
+      document.getElementById("pinSubtitle").textContent = hasPin
+        ? "Voer je persoonlijke 4-cijferige pincode in om jouw kerstpagina te openen."
+        : "Kies een geheime pincode van 4 cijfers zodat niemand op jouw scherm kan meekijken.";
+      const inp = document.getElementById("pinInput");
+      inp.value = "";
+      document.getElementById("pinError").classList.add("hidden");
+      inp.focus();
+    }
+
+    function cancelPin() {
+      pendingUser = null;
+      document.getElementById("pinPanel").classList.add("hidden");
+    }
+
+    async function submitPin() {
+      if (!pendingUser) return;
+      const fam = ensureActiveFamily();
+      const val = document.getElementById("pinInput").value.trim();
+      const err = document.getElementById("pinError");
+      if (!/^\d{4}$/.test(val)) {
+        err.textContent = "Vul precies 4 cijfers in.";
+        err.classList.remove("hidden");
+        return;
+      }
+      if (!fam.pins) fam.pins = {};
+      if (!fam.pins[pendingUser]) {
+        fam.pins[pendingUser] = val;
+        await pushToCloud();
+      } else if (fam.pins[pendingUser] !== val) {
+        err.textContent = "Onjuiste pincode. Probeer opnieuw!";
+        err.classList.remove("hidden");
+        return;
+      }
+
+      currentUser = pendingUser;
+      pendingUser = null;
+      try {
+        sessionStorage.setItem(LAST_USER_KEY, JSON.stringify({ family: activeFamily, user: currentUser }));
+      } catch (e) {}
+      selectedPerson = currentUser;
+      document.getElementById("pinPanel").classList.add("hidden");
+      document.getElementById("loginView").classList.add("hidden");
+      document.getElementById("appView").classList.remove("hidden");
+      document.getElementById("logoutBtn").classList.remove("hidden");
+      const ub = document.getElementById("userBadge");
+      ub.textContent = `👤 ${currentUser} (${activeFamily})`;
+      ub.classList.remove("hidden");
+      renderApp();
+    }
+
+    document.getElementById("pinInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") submitPin();
+    });
+
+    async function logout(skipRender = false) {
+      currentUser = null;
+      selectedPerson = null;
+      cancelEdit();
+      document.getElementById("appView").classList.add("hidden");
+      document.getElementById("logoutBtn").classList.add("hidden");
+      document.getElementById("userBadge").classList.add("hidden");
+      document.getElementById("loginView").classList.remove("hidden");
+      if (!skipRender) renderLogin();
+    }
+
+    async function addNewMember() {
+      const inp = document.getElementById("newMemberName");
+      const name = inp.value.trim();
+      if (!name) return;
+      const fam = ensureActiveFamily();
+      if (fam.members.some(m => m.toLowerCase() === name.toLowerCase())) {
+        alert("Dit familielid staat al in deze familie!");
+        return;
+      }
+      fam.members.push(name);
+      await pushToCloud();
+      inp.value = "";
+      renderLogin();
+    }
+
+    // Hoofd-app weergave
+    function switchTab(tab) {
+      currentTab = tab;
+      document.getElementById("tabLists").classList.toggle("active", tab === "lists");
+      document.getElementById("tabMyPurchases").classList.toggle("active", tab === "purchases");
+      document.getElementById("listsSection").classList.toggle("hidden", tab !== "lists");
+      document.getElementById("purchasesSection").classList.toggle("hidden", tab !== "purchases");
+      renderApp();
+    }
+
+    function renderApp() {
+      if (!currentUser) return;
+      if (currentTab === "lists") {
+        renderPersonPills();
+        renderGiftList();
+      } else {
+        renderMyPurchases();
+      }
+    }
+
+    function getVisiblePeopleForLists() {
+      const fam = ensureActiveFamily();
+      const base = new Set(fam.members || []);
+      if (currentUser) base.add(currentUser);
+      if (currentUser === "Veronique") base.add("Otto");
+      return Array.from(base);
+    }
+
+    function renderPersonPills() {
+      const container = document.getElementById("personPills");
+      container.innerHTML = "";
+      const people = getVisiblePeopleForLists();
+      if (people.length && !people.includes(selectedPerson)) {
+        selectedPerson = people.includes(currentUser) ? currentUser : people[0];
+      }
+      people.forEach(person => {
+        const personGifts = rootState.sharedGifts.filter(g => g.owner === person);
+        const count = personGifts.length;
+        const sum = personGifts.reduce((acc, g) => {
+          const p = parsePrice(g.price);
+          return acc + (p !== null ? p : 0);
+        }, 0);
+        const priceSuffix = sum > 0 ? ` • ${formatEuro(sum)}` : "";
+        const btn = document.createElement("button");
+        btn.className = "pill" + (person === selectedPerson ? " active" : "");
+        btn.textContent = (person === currentUser ? `⭐ Mijn lijst (${person})` : person) + ` (${count}${priceSuffix})`;
+        btn.onclick = () => {
+          selectedPerson = person;
+          cancelEdit();
+          renderApp();
+        };
+        container.appendChild(btn);
+      });
+    }
+
+    function canManageList(ownerName) {
+      if (!currentUser || !ownerName) return false;
+      if (ownerName === currentUser) return true;
+      return currentUser === "Veronique" && ownerName === "Otto";
+    }
+
+    function shouldHideBoughtStatus(ownerName) {
+      if (!currentUser || !ownerName) return false;
+      // Veronique ziet nooit wat er voor haar gekocht is (ook niet via Otto's lijstje), en niemand ziet wat op zijn/haar eigen lijst is gekocht
+      if (currentUser === "Veronique" && ownerName === "Veronique") return true;
+      return ownerName === currentUser;
+    }
+
+    function renderGiftList() {
+      const isOwnList = (selectedPerson === currentUser);
+      const canEditThisList = canManageList(selectedPerson);
+      const hideBoughtHere = shouldHideBoughtStatus(selectedPerson);
+      const gifts = rootState.sharedGifts.filter(g => g.owner === selectedPerson);
+
+      document.getElementById("selectedPersonHeading").textContent = isOwnList
+        ? `🎁 Jouw verlanglijstje (${currentUser})`
+        : canEditThisList
+          ? `🎄 Verlanglijstje van ${selectedPerson} (gedeeld & beheer door ${currentUser})`
+          : `🎄 Verlanglijstje van ${selectedPerson} (gedeeld over families)`;
+
+      const listSum = gifts.reduce((acc, g) => {
+        const p = parsePrice(g.price);
+        return acc + (p !== null ? p : 0);
+      }, 0);
+      document.getElementById("listTotalBadge").textContent = `Lijstprijs: ${formatEuro(listSum)}`;
+      document.getElementById("giftCountBadge").textContent = `${gifts.length} ${gifts.length === 1 ? "cadeau" : "cadeaus"}`;
+      const pdfBtn = document.getElementById("downloadPdfBtn");
+      if (pdfBtn) {
+        pdfBtn.classList.toggle("hidden", !isOwnList);
+      }
+
+      const bannerEl = document.getElementById("ownListBanner");
+      bannerEl.classList.toggle("hidden", !hideBoughtHere);
+      bannerEl.innerHTML = isOwnList
+        ? `<span>🤫</span><div><strong>Geheime Kerstmodus:</strong> Dit is jouw eigen verlanglijstje. Je ziet hier dus <em>niet</em> welke cadeaus al zijn gekocht!</div>`
+        : `<span>🤫</span><div><strong>Geheime Kerstmodus voor ${escapeHtml(currentUser)}:</strong> Je ziet hier niet welke cadeaus al voor jou gekocht zijn.</div>`;
+
+      document.getElementById("addGiftForm").classList.toggle("hidden", !canEditThisList);
+      document.getElementById("formTitle").textContent = isOwnList
+        ? "✨ Nieuw cadeau op jouw gedeelde lijst zetten"
+        : `✨ Nieuw cadeau op het gedeelde lijstje van ${selectedPerson} zetten`;
+
+      const listEl = document.getElementById("giftListContainer");
+      listEl.innerHTML = "";
+
+      if (gifts.length === 0) {
+        listEl.innerHTML = `<p style="color: var(--text-muted); text-align:center; padding: 20px;">Nog geen cadeaus op deze lijst.</p>`;
+        return;
+      }
+
+      gifts.forEach(gift => {
+        const isBought = Boolean(gift.boughtBy);
+        const showBoughtStatus = !hideBoughtHere && isBought;
+
+        const row = document.createElement("div");
+        row.className = "gift-item" + (showBoughtStatus ? " bought" : "");
+
+        const priceBadgeHtml = renderPriceBadge(gift.price);
+        const noteHtml = gift.note ? `<div class="gift-meta">📝 ${escapeHtml(gift.note)}</div>` : "";
+        const linkHtml = gift.url ? `<a class="gift-link" href="${escapeHtml(gift.url)}" target="_blank" rel="noopener noreferrer">🔗 Bekijk online</a>` : "";
+        const buyerLabel = gift.boughtByFamily && gift.boughtByFamily !== activeFamily
+          ? `${gift.boughtBy} (${gift.boughtByFamily})`
+          : gift.boughtBy;
+        const statusHtml = showBoughtStatus
+          ? `<span class="status-tag status-bought">✅ Gekocht door ${escapeHtml(buyerLabel)}</span>`
+          : "";
+
+        let actionsHtml = "";
+        if (canEditThisList) {
+          actionsHtml = `
+            <button class="btn-outline btn-sm" onclick="editGift('${gift.id}')">✏️ Bewerken</button>
+            <button class="btn-red btn-sm" onclick="deleteGift('${gift.id}')">🗑️ Verwijderen</button>
+          `;
+        } else {
+          if (!isBought) {
+            actionsHtml = `<button class="btn-green btn-sm" onclick="toggleBuy('${gift.id}')">🎁 Ik koop dit!</button>`;
+          } else if (gift.boughtBy === currentUser && (!gift.boughtByFamily || gift.boughtByFamily === activeFamily)) {
+            actionsHtml = `<button class="btn-outline btn-sm" onclick="toggleBuy('${gift.id}')">↩️ Annuleer mijn aankoop</button>`;
+          } else {
+            actionsHtml = `<span style="font-size:0.8rem; color:#94a3b8;">Al gereserveerd</span>`;
+          }
+        }
+
+        row.innerHTML = `
+          <div class="gift-info">
+            <div class="gift-title">
+              <span class="gift-title-text">${escapeHtml(gift.title)}</span>
+              ${priceBadgeHtml}
+              ${statusHtml}
+            </div>
+            ${noteHtml}
+            ${linkHtml}
+          </div>
+          <div class="gift-actions">${actionsHtml}</div>
+        `;
+        listEl.appendChild(row);
+      });
+    }
+
+
+    let lastAutoFilledPrice = "";
+    let priceLookupSeq = 0;
+
+    function setPriceLookupStatus(msg, color = "var(--text-muted)") {
+      const el = document.getElementById("priceLookupStatus");
+      if (!el) return;
+      el.textContent = msg || "";
+      el.style.color = color;
+    }
+
+    function normalizePriceCandidate(rawVal) {
+      if (rawVal === null || rawVal === undefined) return null;
+      const cleaned = String(rawVal)
+        .replace(/&euro;|€/gi, "")
+        .replace(/EUR/gi, "")
+        .replace(/\s+/g, "")
+        .trim();
+      if (!cleaned) return null;
+
+      let numericStr = cleaned;
+      if (cleaned.includes(",") && cleaned.includes(".")) {
+        if (cleaned.lastIndexOf(",") > cleaned.lastIndexOf(".")) {
+          numericStr = cleaned.replace(/\./g, "").replace(",", ".");
+        } else {
+          numericStr = cleaned.replace(/,/g, "");
+        }
+      } else if (cleaned.includes(",")) {
+        numericStr = cleaned.replace(",", ".");
+      }
+
+      if (!/^\d+(\.\d{1,2})?$/.test(numericStr)) return null;
+      const num = parseFloat(numericStr);
+      if (isNaN(num) || num <= 0 || num > 50000) return null;
+      return num.toFixed(2);
+    }
+
+    function extractPriceFromHtml(htmlText) {
+      if (!htmlText || typeof htmlText !== "string") return null;
+
+      // 1. OpenGraph / product meta tags
+      const metaPatterns = [
+        /<meta[^>]+(?:property|name)=["'](?:product:price:amount|og:price:amount|price|twitter:data1)["'][^>]+content=["']([^"']+)["']/i,
+        /<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["'](?:product:price:amount|og:price:amount|price|twitter:data1)["']/i
+      ];
+      for (const re of metaPatterns) {
+        const m = htmlText.match(re);
+        if (m && m[1]) {
+          const norm = normalizePriceCandidate(m[1]);
+          if (norm) return norm;
+        }
+      }
+
+      // 2. JSON-LD schema.org Offer price
+      const jsonLdMatches = [...htmlText.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
+      for (const jm of jsonLdMatches) {
+        const rawJson = (jm[1] || "").trim();
+        if (!rawJson) continue;
+        const pricePropMatch = rawJson.match(/"price"\s*:\s*"?([0-9]+(?:[.,][0-9]{1,2})?)"?/i);
+        if (pricePropMatch && pricePropMatch[1]) {
+          const norm = normalizePriceCandidate(pricePropMatch[1]);
+          if (norm) return norm;
+        }
+      }
+
+      // 3. Inline data-price or euro amounts in text
+      const dataPriceMatch = htmlText.match(/data-price=["']([0-9]+(?:[.,][0-9]{1,2})?)["']/i);
+      if (dataPriceMatch && dataPriceMatch[1]) {
+        const norm = normalizePriceCandidate(dataPriceMatch[1]);
+        if (norm) return norm;
+      }
+
+      const plainText = htmlText
+        .replace(/<script[\s\S]*?<\/script>/gi, " ")
+        .replace(/<style[\s\S]*?<\/style>/gi, " ")
+        .replace(/<[^>]+>/g, " ")
+        .replace(/&nbsp;/gi, " ")
+        .replace(/&euro;/gi, "€");
+
+      const euroMatches = [...plainText.matchAll(/(?:€|EUR)\s*([0-9]{1,4}(?:[.,][0-9]{2})?)|([0-9]{1,4}(?:,[0-9]{2}))\s*(?:€|EUR)/gi)];
+      for (const em of euroMatches) {
+        const candidate = em[1] || em[2];
+        const norm = normalizePriceCandidate(candidate);
+        if (norm) return norm;
+      }
+
+      return null;
+    }
+
+    async function fetchHtmlWithFallback(targetUrl) {
+      const candidates = [
+        targetUrl,
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
+        `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`
+      ];
+
+      for (const endpoint of candidates) {
+        try {
+          const controller = new AbortController();
+          const timer = setTimeout(() => controller.abort(), 5500);
+          const res = await fetch(endpoint, { signal: controller.signal });
+          clearTimeout(timer);
+          if (!res.ok) continue;
+          const text = await res.text();
+          if (text && text.length > 100) return text;
+        } catch (_) {
+          // Try next source
+        }
+      }
+      return null;
+    }
+
+    async function autoFillPriceFromUrl(forceLookup = false) {
+      const urlInput = document.getElementById("giftUrl");
+      const priceInput = document.getElementById("giftPrice");
+      if (!urlInput || !priceInput) return;
+
+      const rawUrl = urlInput.value.trim();
+      if (!rawUrl) {
+        setPriceLookupStatus("");
+        return;
+      }
+
+      let parsedUrl;
+      try {
+        parsedUrl = new URL(rawUrl.startsWith("http") ? rawUrl : `https://${rawUrl}`);
+      } catch (_) {
+        setPriceLookupStatus("Ongeldige URL — controleer het webadres.", "#fca5a5");
+        return;
+      }
+
+      const currentPriceTrimmed = priceInput.value.trim();
+      const canOverwrite = !currentPriceTrimmed || currentPriceTrimmed === lastAutoFilledPrice || forceLookup;
+      if (!canOverwrite) return;
+
+      const seq = ++priceLookupSeq;
+      setPriceLookupStatus("🔍 Prijs opzoeken op website van handelaar...", "var(--gold)");
+
+      const html = await fetchHtmlWithFallback(parsedUrl.toString());
+      if (seq !== priceLookupSeq) return;
+
+      const foundPrice = extractPriceFromHtml(html);
+      if (foundPrice) {
+        const displayPrice = foundPrice.replace(".", ",");
+        priceInput.value = displayPrice;
+        lastAutoFilledPrice = displayPrice;
+        setPriceLookupStatus(`✅ Gevonden prijs ingevuld: € ${displayPrice} (pas aan indien nodig)`, "#6ee7b7");
+      } else {
+        setPriceLookupStatus("ℹ️ Prijs kon niet automatisch gelezen worden (webshop blokkeert directe opvraag). Vul de prijs handmatig in.", "var(--text-muted)");
+      }
+    }
+
+    async function saveGift() {
+      if (!canManageList(selectedPerson)) return;
+      const title = document.getElementById("giftName").value.trim();
+      const urlFieldVal = document.getElementById("giftUrl").value.trim();
+      if (urlFieldVal && !document.getElementById("giftPrice").value.trim()) {
+        await autoFillPriceFromUrl(false);
+      }
+      const rawPrice = document.getElementById("giftPrice").value.trim();
+      const parsedPrice = parsePrice(rawPrice);
+      const price = parsedPrice !== null ? parsedPrice.toFixed(2) : rawPrice.replace(",", ".");
+      const url = document.getElementById("giftUrl").value.trim();
+      const note = document.getElementById("giftNote").value.trim();
+      const editId = document.getElementById("editGiftId").value;
+
+      if (!title) {
+        alert("Vul minstens de naam van het cadeau in.");
+        return;
+      }
+
+      if (editId) {
+        const item = rootState.sharedGifts.find(g => g.id === editId && g.owner === selectedPerson);
+        if (item) {
+          item.title = title;
+          item.price = price;
+          item.url = url;
+          item.note = note;
+        }
+      } else {
+        rootState.sharedGifts.unshift({
+          id: "g_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
+          owner: selectedPerson,
+          title,
+          price,
+          url,
+          note,
+          boughtBy: null,
+          boughtByFamily: null
+        });
+      }
+
+      await pushToCloud();
+      cancelEdit();
+      renderApp();
+    }
+
+    function editGift(id) {
+      const item = rootState.sharedGifts.find(g => g.id === id && g.owner === selectedPerson && canManageList(selectedPerson));
+      if (!item) return;
+      const parsed = parsePrice(item.price);
+      document.getElementById("editGiftId").value = item.id;
+      const nameInput = document.getElementById("giftName");
+      nameInput.value = item.title;
+      document.getElementById("giftPrice").value = parsed !== null ? parsed.toFixed(2).replace(".", ",") : (item.price || "");
+      document.getElementById("giftUrl").value = item.url || "";
+      document.getElementById("giftNote").value = item.note || "";
+      document.getElementById("formTitle").textContent = "✏️ Cadeau aanpassen";
+      document.getElementById("saveGiftBtn").textContent = "💾 Opslaan";
+      document.getElementById("cancelEditBtn").classList.remove("hidden");
+
+      const formBox = document.getElementById("addGiftForm");
+      if (formBox) {
+        formBox.classList.remove("hidden");
+        formBox.scrollIntoView({ behavior: "smooth", block: "center" });
+        formBox.style.transition = "box-shadow 0.3s ease, border-color 0.3s ease";
+        formBox.style.borderColor = "var(--gold)";
+        formBox.style.boxShadow = "0 0 0 3px rgba(245, 200, 76, 0.35)";
+        setTimeout(() => {
+          formBox.style.borderColor = "rgba(245, 200, 76, 0.25)";
+          formBox.style.boxShadow = "";
+        }, 1400);
+      }
+      setTimeout(() => {
+        nameInput.focus();
+        nameInput.select();
+      }, 250);
+    }
+
+    function cancelEdit() {
+      document.getElementById("editGiftId").value = "";
+      document.getElementById("giftName").value = "";
+      document.getElementById("giftPrice").value = "";
+      document.getElementById("giftUrl").value = "";
+      document.getElementById("giftNote").value = "";
+      lastAutoFilledPrice = "";
+      setPriceLookupStatus("");
+      document.getElementById("formTitle").textContent = (selectedPerson && selectedPerson !== currentUser && canManageList(selectedPerson))
+        ? `✨ Nieuw cadeau op het gedeelde lijstje van ${selectedPerson} zetten`
+        : "✨ Nieuw cadeau op jouw gedeelde lijst zetten";
+      document.getElementById("saveGiftBtn").textContent = "🎁 Toevoegen aan lijst";
+      document.getElementById("cancelEditBtn").classList.add("hidden");
+    }
+
+    async function deleteGift(id) {
+      if (!canManageList(selectedPerson)) return;
+      if (!confirm("Ben je zeker dat je dit cadeau van deze gedeelde lijst wilt verwijderen?")) return;
+      rootState.sharedGifts = rootState.sharedGifts.filter(g => !(g.id === id && g.owner === selectedPerson));
+      await pushToCloud();
+      renderApp();
+    }
+
+    async function toggleBuy(id) {
+      if (cloudBaseUrl) await pullFromCloud(true);
+      const item = rootState.sharedGifts.find(g => g.id === id);
+      if (!item || canManageList(item.owner)) return;
+      if (!item.boughtBy) {
+        item.boughtBy = currentUser;
+        item.boughtByFamily = activeFamily;
+      } else if (item.boughtBy === currentUser && (!item.boughtByFamily || item.boughtByFamily === activeFamily)) {
+        item.boughtBy = null;
+        item.boughtByFamily = null;
+      } else {
+        const who = item.boughtByFamily ? `${item.boughtBy} (${item.boughtByFamily})` : item.boughtBy;
+        alert(`Dit cadeau werd net al gereserveerd door ${who}!`);
+      }
+      await pushToCloud();
+      renderApp();
+    }
+
+    function renderMyPurchases() {
+      const mine = rootState.sharedGifts.filter(g =>
+        g.boughtBy === currentUser && (!g.boughtByFamily || g.boughtByFamily === activeFamily)
+      );
+      const container = document.getElementById("myPurchasesContainer");
+      container.innerHTML = "";
+
+      const total = mine.reduce((acc, g) => {
+        const val = parsePrice(g.price);
+        return acc + (val !== null ? val : 0);
+      }, 0);
+      document.getElementById("totalSpentBadge").textContent = `Totaal: ${formatEuro(total)}`;
+
+      if (mine.length === 0) {
+        container.innerHTML = `<p style="color: var(--text-muted); text-align:center; padding: 20px;">Je hebt nog geen cadeaus afgevinkt voor andere familieleden.</p>`;
+        return;
+      }
+
+      mine.forEach(gift => {
+        const row = document.createElement("div");
+        row.className = "gift-item bought";
+        const priceBadgeHtml = renderPriceBadge(gift.price);
+        row.innerHTML = `
+          <div class="gift-info">
+            <div class="gift-title">
+              <span>🎁 ${escapeHtml(gift.title)}</span>
+              <span class="badge" style="font-size:0.75rem;">Voor: ${escapeHtml(gift.owner)}</span>
+              ${priceBadgeHtml}
+            </div>
+            ${gift.note ? `<div class="gift-meta">📝 ${escapeHtml(gift.note)}</div>` : ""}
+          </div>
+          <div class="gift-actions">
+            <button class="btn-outline btn-sm" onclick="toggleBuy('${gift.id}')">↩️ Toch niet kopen</button>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+
+    function downloadPersonListPdf() {
+      if (!currentUser || selectedPerson !== currentUser) return;
+      const personName = currentUser;
+      const gifts = rootState.sharedGifts.filter(g => g.owner === personName);
+      const hideBoughtHere = shouldHideBoughtStatus(personName);
+
+      if (!window.jspdf || !window.jspdf.jsPDF) {
+        alert("PDF-generator kon niet geladen worden. Controleer je internetverbinding.");
+        return;
+      }
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ unit: "mm", format: "a4" });
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 16;
+      const usableWidth = pageWidth - margin * 2;
+      let y = 18;
+
+      function ensureSpace(neededHeight) {
+        if (y + neededHeight > pageHeight - 16) {
+          doc.addPage();
+          y = 18;
+        }
+      }
+
+      // Header banner
+      doc.setFillColor(13, 43, 34);
+      doc.roundedRect(margin, y - 6, usableWidth, 24, 3, 3, "F");
+      doc.setTextColor(245, 200, 76);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(16);
+      doc.text(`Verlanglijstje van ${personName}`, margin + 5, y + 3);
+
+      doc.setTextColor(226, 232, 240);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9.5);
+      const dateStr = new Date().toLocaleDateString("nl-BE", { day: "2-digit", month: "2-digit", year: "numeric" });
+      doc.text(`Familie: ${activeFamily}   •   Gegenereerd op: ${dateStr}`, margin + 5, y + 11);
+      y += 26;
+
+      // Summary bar
+      const listSum = gifts.reduce((acc, g) => {
+        const p = parsePrice(g.price);
+        return acc + (p !== null ? p : 0);
+      }, 0);
+      doc.setTextColor(30, 41, 59);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10.5);
+      doc.text(
+        `Aantal cadeaus: ${gifts.length}   |   Totale richtprijs: ${formatEuro(listSum)}`,
+        margin,
+        y
+      );
+      y += 5;
+
+      if (hideBoughtHere) {
+        doc.setFont("helvetica", "italic");
+        doc.setFontSize(9);
+        doc.setTextColor(100, 116, 139);
+        doc.text("Geheime Kerstmodus actief: aankoopstatus is verborgen op je eigen lijst.", margin, y + 3);
+        y += 8;
+      } else {
+        y += 3;
+      }
+
+      doc.setDrawColor(203, 213, 225);
+      doc.line(margin, y, pageWidth - margin, y);
+      y += 7;
+
+      if (gifts.length === 0) {
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(11);
+        doc.setTextColor(71, 85, 105);
+        doc.text("Er staan momenteel nog geen cadeaus op dit verlanglijstje.", margin, y);
+      } else {
+        gifts.forEach((gift, index) => {
+          const parsedP = parsePrice(gift.price);
+          const priceLabel = parsedP !== null
+            ? formatEuro(parsedP)
+            : (gift.price && String(gift.price).trim() ? String(gift.price).trim() : "Prijs n.t.b.");
+
+          const isBought = Boolean(gift.boughtBy);
+          const buyerLabel = gift.boughtByFamily && gift.boughtByFamily !== activeFamily
+            ? `${gift.boughtBy} (${gift.boughtByFamily})`
+            : gift.boughtBy;
+          const statusLabel = hideBoughtHere
+            ? "Verborgen (eigen lijst)"
+            : (isBought ? `Gekocht door ${buyerLabel}` : "Nog beschikbaar");
+
+          const titleLines = doc.splitTextToSize(`${index + 1}. ${gift.title}`, usableWidth - 40);
+          const noteText = gift.note ? `Extra info: ${gift.note}` : "Extra info: -";
+          const noteLines = doc.splitTextToSize(noteText, usableWidth - 8);
+          const urlText = gift.url ? `Weblink: ${gift.url}` : "Weblink: -";
+          const urlLines = doc.splitTextToSize(urlText, usableWidth - 8);
+
+          const blockHeight = (titleLines.length * 5.2) + (noteLines.length * 4.5) + (urlLines.length * 4.5) + 12;
+          ensureSpace(blockHeight);
+
+          // Card background
+          doc.setFillColor(248, 250, 252);
+          doc.setDrawColor(203, 213, 225);
+          doc.roundedRect(margin, y - 4, usableWidth, blockHeight - 2, 2, 2, "FD");
+
+          // Title & Price
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(11);
+          doc.setTextColor(15, 23, 42);
+          doc.text(titleLines, margin + 4, y + 1);
+
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(10);
+          doc.setTextColor(180, 120, 10);
+          doc.text(priceLabel, pageWidth - margin - 4, y + 1, { align: "right" });
+
+          let innerY = y + 1 + titleLines.length * 5.2;
+
+          // Status
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(9);
+          if (!hideBoughtHere && isBought) {
+            doc.setTextColor(22, 101, 52);
+          } else {
+            doc.setTextColor(71, 85, 105);
+          }
+          doc.text(`Status: ${statusLabel}`, margin + 4, innerY);
+          innerY += 4.8;
+
+          // Note
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(9);
+          doc.setTextColor(51, 65, 85);
+          doc.text(noteLines, margin + 4, innerY);
+          innerY += noteLines.length * 4.5;
+
+          // URL (clickable if present)
+          if (gift.url) {
+            doc.setTextColor(3, 105, 161);
+            doc.textWithLink(urlLines[0], margin + 4, innerY, { url: gift.url });
+            if (urlLines.length > 1) {
+              doc.text(urlLines.slice(1), margin + 4, innerY + 4.5);
+            }
+          } else {
+            doc.setTextColor(100, 116, 139);
+            doc.text(urlLines, margin + 4, innerY);
+          }
+
+          y += blockHeight + 2;
+        });
+      }
+
+      const safeFileName = `Verlanglijstje_${personName.replace(/[^a-zA-Z0-9_-]+/g, "_")}.pdf`;
+      doc.save(safeFileName);
+    }
+
+    function escapeHtml(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    initDecorations();
+    if (invitedFamilyFromUrl) {
+      const matchKey = Object.keys(rootState.families || {}).find(
+        k => k.toLowerCase() === invitedFamilyFromUrl.toLowerCase()
+      );
+      if (matchKey) {
+        activeFamily = matchKey;
+        localStorage.setItem(ACTIVE_FAMILY_KEY, activeFamily);
+      }
+    }
+    document.getElementById("accessCodeInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") submitAccessCode();
+    });
+    if (checkAndRenderAccessGate()) {
+      renderLogin();
+    }
+    if (cloudBaseUrl) {
+      pullFromCloud(false);
+    }
+    const giftUrlEl = document.getElementById("giftUrl");
+    if (giftUrlEl) {
+      giftUrlEl.addEventListener("blur", () => autoFillPriceFromUrl(false));
+      giftUrlEl.addEventListener("change", () => autoFillPriceFromUrl(false));
+    }
+    startPolling();
+  </script>
+</body>
+</html>
