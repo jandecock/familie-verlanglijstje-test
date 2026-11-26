@@ -572,7 +572,7 @@
 
       <div class="card" style="margin-bottom: 14px; padding: 16px; background: rgba(7, 25, 20, 0.78); text-align: left;">
         <h3 style="color: var(--gold); font-size: 1rem; margin-bottom: 6px;">🔑 Toegang via unieke familiecode</h3>
-        <p style="font-size: 0.83rem; margin-bottom: 10px;">Heb je een unieke familiecode ontvangen? Vul die hier in om direct naar jouw familie te gaan.</p>
+        <p style="font-size: 0.83rem; margin-bottom: 10px;">Heb je een unieke familiecode ontvangen (bijv. <code style="color:var(--gold);">DECOCK26</code>)? Vul die hier in om direct naar jouw familie te gaan.</p>
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
           <input type="text" id="welcomeFamilyCodeInput" placeholder="Unieke familiecode (bijv. DECOCK26)..." style="flex:1 1 210px; text-transform:uppercase; font-weight:700; letter-spacing:1.5px;" />
           <button type="button" class="btn-gold" onclick="openFamilyByInviteCode('welcomeFamilyCodeInput', 'welcomeError')">
@@ -663,12 +663,6 @@
       <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.12); display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
         <input type="text" id="newMemberName" placeholder="Nieuw familielid (nieuw profiel-ID)..." style="max-width: 250px;" />
         <button class="btn-green btn-sm" onclick="addNewMember()">+ Nieuw lid</button>
-      </div>
-
-      <div id="linkExistingProfileBox" class="hidden" style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed rgba(255,255,255,0.12); display:flex; gap:8px; justify-content:center; align-items:center; flex-wrap:wrap;">
-        <span style="font-size:0.8rem; color:var(--text-muted);">Bestaand profiel koppelen:</span>
-        <select id="existingProfileSelect" style="width:auto; max-width: 230px; padding:7px 10px; font-size:0.84rem;"></select>
-        <button type="button" class="btn-outline btn-sm" onclick="linkExistingProfileToActiveFamily()">🔗 Koppel profiel</button>
       </div>
 
       <div style="margin-top: 14px;">
@@ -2194,7 +2188,6 @@
       grid.innerHTML = "";
       if (memberIds.length === 0) {
         grid.innerHTML = `<p style="grid-column: 1 / -1; color: var(--text-muted); font-size: 0.88rem; padding: 10px;">Nog geen leden in deze familie.</p>`;
-        renderLinkExistingProfileBar();
         return;
       }
 
@@ -2227,61 +2220,6 @@
         grid.appendChild(card);
       });
 
-      renderLinkExistingProfileBar();
-    }
-
-    // Optioneel bestaand profiel uit een andere zichtbare familie koppelen aan de actieve familie
-    function renderLinkExistingProfileBar() {
-      const container = document.getElementById("linkExistingProfileBox");
-      const selectEl = document.getElementById("existingProfileSelect");
-      if (!container || !selectEl) return;
-
-      const fam = ensureActiveFamily();
-      const currentMemberIds = new Set(getFamilyMemberIds(fam));
-      const candidateProfiles = [];
-
-      getVisibleFamilyNames().forEach(famName => {
-        if (famName === activeFamily) return;
-        const otherFam = rootState.families[famName];
-        getFamilyMemberIds(otherFam).forEach(pid => {
-          if (currentMemberIds.has(pid)) return;
-          const prof = getProfile(pid);
-          if (prof && !candidateProfiles.some(item => item.id === pid)) {
-            candidateProfiles.push({ id: pid, name: prof.name, fromFamily: famName });
-          }
-        });
-      });
-
-      if (candidateProfiles.length === 0) {
-        container.classList.add("hidden");
-        return;
-      }
-
-      selectEl.innerHTML = "";
-      candidateProfiles.forEach(item => {
-        const opt = document.createElement("option");
-        opt.value = item.id;
-        opt.textContent = `${item.name} (${getShortProfileCode(item.id)} • ${item.fromFamily})`;
-        selectEl.appendChild(opt);
-      });
-      container.classList.remove("hidden");
-    }
-
-    async function linkExistingProfileToActiveFamily() {
-      const selectEl = document.getElementById("existingProfileSelect");
-      if (!selectEl || !selectEl.value) return;
-      const profileId = selectEl.value;
-      const prof = getProfile(profileId);
-      if (!prof) return;
-      const fam = ensureActiveFamily();
-      const memberIds = getFamilyMemberIds(fam);
-      if (memberIds.includes(profileId)) {
-        alert("Dit profiel is al gekoppeld aan deze familie.");
-        return;
-      }
-      fam.memberIds = [...memberIds, profileId];
-      await pushToCloud();
-      renderLogin();
     }
 
     async function deleteMember(profileId) {
