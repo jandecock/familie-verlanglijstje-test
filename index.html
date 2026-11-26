@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>🎄 Familie Verlanglijstjes — Gedeelde Kerst Editie</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎄</text></svg>" />
   <style>
     :root {
       --bg-dark: #071914;
@@ -606,4 +607,2332 @@
           <select id="familySelect" onchange="switchFamily(this.value)" style="width:auto; min-width:165px; padding:7px 12px; border-radius:10px; border:1px solid var(--gold); background:var(--input-bg); color:var(--text-main); font-size:0.9rem; font-weight:600;"></select>
         </div>
         <div style="display:flex; gap:6px; flex-wrap:wrap;">
-          <input type="text" id="newFamilyName" placeholder="Nieuwe familie..." style="width
+          <input type="text" id="newFamilyName" placeholder="Nieuwe familie..." style="width:155px; padding:7px 10px; font-size:0.84rem;" />
+          <button class="btn-gold btn-sm" onclick="addNewFamily()">+ Familie</button>
+          <button class="btn-outline btn-sm" onclick="copyFamilyInviteLink()" title="Kopieer uitnodigingslink voor de actieve familie">🔗 Deel familie</button>
+        </div>
+      </div>
+
+      <!-- Familiecode weergave + toegang via code op login-scherm -->
+      <div class="family-code-banner">
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+          <span style="font-size:0.82rem; color:var(--text-muted);">🔑 Familiecode:</span>
+          <span class="family-code-pill" id="activeFamilyCodeBadge">DECOCK26</span>
+          <button type="button" class="btn-outline btn-sm" onclick="copyActiveFamilyCode()" title="Kopieer unieke familiecode">📋 Kopieer</button>
+          <button type="button" class="btn-outline btn-sm" onclick="regenerateActiveFamilyCode()" title="Genereer een nieuwe unieke familiecode">🎲 Nieuwe code</button>
+        </div>
+        <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+          <input type="text" id="loginFamilyCodeInput" placeholder="Code invoeren..." style="width:140px; padding:6px 10px; font-size:0.82rem; text-transform:uppercase; font-weight:700; letter-spacing:1px;" />
+          <button type="button" class="btn-green btn-sm" onclick="openFamilyByInviteCode('loginFamilyCodeInput', 'loginCodeError')">Ga naar code</button>
+        </div>
+      </div>
+      <div id="loginCodeError" class="error-msg hidden" style="margin-bottom: 10px; text-align:left;"></div>
+
+      <h2 id="loginHeading">🎅 Wie ben jij?</h2>
+      <p id="loginSubtitle">Kies je naam hieronder. Bij je eerste bezoek stel je een persoonlijke pincode van 4 cijfers in zodat niemand op jouw scherm kan spieken!</p>
+
+      <div class="member-grid" id="memberGrid"></div>
+
+      <div id="pinPanel" class="pin-panel hidden">
+        <h3 id="pinTitle" style="color: var(--gold); margin-bottom: 4px;"></h3>
+        <p id="pinSubtitle" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;"></p>
+        <input type="password" id="pinInput" class="pin-input" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="••••" />
+        <div id="pinError" class="error-msg hidden"></div>
+        <div style="display:flex; gap:8px; justify-content:center; margin-top:12px;">
+          <button class="btn-outline btn-sm" onclick="cancelPin()">Annuleren</button>
+          <button class="btn-gold" onclick="submitPin()">Bevestigen 🎄</button>
+        </div>
+      </div>
+
+      <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.12); display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
+        <input type="text" id="newMemberName" placeholder="Nieuw familielid (nieuw profiel-ID)..." style="max-width: 250px;" />
+        <button class="btn-green btn-sm" onclick="addNewMember()">+ Nieuw lid</button>
+      </div>
+
+      <div id="linkExistingProfileBox" class="hidden" style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed rgba(255,255,255,0.12); display:flex; gap:8px; justify-content:center; align-items:center; flex-wrap:wrap;">
+        <span style="font-size:0.8rem; color:var(--text-muted);">Bestaand profiel koppelen:</span>
+        <select id="existingProfileSelect" style="width:auto; max-width: 230px; padding:7px 10px; font-size:0.84rem;"></select>
+        <button type="button" class="btn-outline btn-sm" onclick="linkExistingProfileToActiveFamily()">🔗 Koppel profiel</button>
+      </div>
+
+      <div style="margin-top: 14px;">
+        <button class="btn-outline btn-sm" onclick="resetToDefaultGifts()">🔄 Herstel standaard PDF-cadeaus</button>
+      </div>
+    </div>
+
+    <!-- INGELOGDE APP -->
+    <div id="appView" class="hidden">
+      <div class="tabs">
+        <button class="tab-btn active" id="tabLists" onclick="switchTab('lists')">🎁 Verlanglijstjes</button>
+        <button class="tab-btn" id="tabMyPurchases" onclick="switchTab('purchases')">🛍️ Mijn Gekochte Cadeaus</button>
+      </div>
+
+      <!-- TAB 1: VERLANGLIJSTJES -->
+      <div id="listsSection">
+        <div class="person-pills" id="personPills"></div>
+
+        <div class="card">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
+            <h2 id="selectedPersonHeading" style="color: var(--gold); font-size: 1.3rem;"></h2>
+            <div class="list-header-right">
+              <span id="listTotalBadge" class="badge"></span>
+              <span id="giftCountBadge" class="badge"></span>
+              <button type="button" class="btn-outline btn-sm" id="downloadPdfBtn" onclick="downloadPersonListPdf()" title="Download jouw eigen verlanglijstje als PDF met alle info">📄 Download mijn PDF</button>
+            </div>
+          </div>
+
+          <div id="ownListBanner" class="secret-banner hidden">
+            <span>🤫</span>
+            <div><strong>Geheime Kerstmodus:</strong> Dit is jouw eigen verlanglijstje. Je ziet hier dus <em>niet</em> welke cadeaus al door familieleden zijn gekocht!</div>
+          </div>
+
+          <!-- CADEAU TOEVOEGEN / BEWERKEN (ALLEEN OP EIGEN LIJST) -->
+          <div id="addGiftForm" class="card" style="background: rgba(7, 25, 20, 0.65); border-color: rgba(245, 200, 76, 0.25); margin-bottom: 18px;">
+            <h3 id="formTitle" style="color: var(--gold); font-size: 1rem; margin-bottom: 10px;">✨ Nieuw cadeau op jouw lijst zetten</h3>
+            <input type="hidden" id="editGiftId" value="" />
+            <div class="form-grid">
+              <input type="text" id="giftName" placeholder="Naam van het cadeau *" />
+              <input type="text" id="giftPrice" placeholder="Prijs in euro (bijv. 25,00)" />
+              <input type="url" id="giftUrl" placeholder="Weblink (https://...) — prijs wordt automatisch gezocht" />
+              <input type="text" id="giftNote" placeholder="Extra info (maat, kleur, winkel...)" />
+            </div>
+            <div id="priceLookupStatus" style="font-size:0.8rem; color:var(--text-muted); margin-bottom:10px; min-height:18px;"></div>
+            <div style="display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap;">
+              <button type="button" class="btn-outline btn-sm" id="fetchPriceBtn" onclick="autoFillPriceFromUrl(true)">💶 Prijs ophalen via URL</button>
+              <button type="button" class="btn-outline btn-sm hidden" id="cancelEditBtn" onclick="cancelEdit()">Annuleren</button>
+              <button type="button" class="btn-gold" id="saveGiftBtn" onclick="saveGift()">🎁 Toevoegen aan lijst</button>
+            </div>
+          </div>
+
+          <div class="gift-list" id="giftListContainer"></div>
+        </div>
+      </div>
+
+      <!-- TAB 2: MIJN GEKOCHTE CADEAUS -->
+      <div id="purchasesSection" class="hidden">
+        <div class="card">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:16px;">
+            <h2 style="color: var(--gold); font-size: 1.3rem;">🛍️ Door jou gekochte kerstcadeaus</h2>
+            <span class="badge" id="totalSpentBadge">Totaal: € 0,00</span>
+          </div>
+          <div class="gift-list" id="myPurchasesContainer"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: GEDEELDE CLOUD-OPSLAG INSTELLEN -->
+  <div id="cloudModal" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <h3>☁️ Gedeelde opslag voor alle familieleden</h3>
+      <p style="margin-bottom: 10px;">
+        Koppel een gratis <strong>Firebase Realtime Database</strong> zodat elk familielid op zijn eigen gsm of laptop dezelfde lijstjes, familiecodes en pincodes deelt:
+      </p>
+      <ol>
+        <li>Ga naar <strong>console.firebase.google.com</strong> en maak een nieuw gratis project aan.</li>
+        <li>Ga in het menu naar <strong>Build &gt; Realtime Database</strong> en klik op <strong>Create Database</strong> (kies <em>Start in test mode</em>).</li>
+        <li>Kopieer de database-URL (eindigt op <code>.firebaseio.com</code> of <code>.firebasedatabase.app</code>) en plak die hieronder.</li>
+        <li>Klik op <strong>Opslaan &amp; Deel-link kopiëren</strong> en stuur die link door naar de familie (dan staat de cloudkoppeling bij iedereen meteen juist!).</li>
+      </ol>
+      <input type="url" id="firebaseUrlInput" placeholder="https://jouw-project-default-rtdb.europe-west1.firebasedatabase.app" style="margin-bottom: 12px;" />
+      <div style="margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.12);">
+        <label style="display:block; font-size:0.84rem; color:var(--gold); font-weight:700; margin-bottom:6px;">🔐 Familie-toegangscode (tegen onbekenden)</label>
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="appAccessCodeSetting" placeholder="Bijv. KERST2026" />
+          <button class="btn-green btn-sm" onclick="updateAppAccessCode()">Code opslaan</button>
+        </div>
+      </div>
+      <div id="cloudStatusMsg" style="font-size:0.83rem; color:#6ee7b7; margin:12px 0;"></div>
+      <div style="display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap;">
+        <button class="btn-outline btn-sm" onclick="closeCloudModal()">Sluiten</button>
+        <button class="btn-outline btn-sm" onclick="copyShareLink()">🔗 Kopieer deel-link</button>
+        <button class="btn-gold btn-sm" onclick="saveCloudConfig()">💾 Opslaan &amp; Synchroniseren</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "familie_kerst_verlanglijstjes_v8";
+    const LEGACY_STORAGE_KEYS = ["familie_kerst_verlanglijstjes_v7", "familie_kerst_verlanglijstjes_v6"];
+    const ACTIVE_FAMILY_KEY = "familie_kerst_active_family_v1";
+    const UNLOCKED_FAMILIES_KEY = "familie_kerst_unlocked_families_v1";
+    const CLOUD_URL_KEY = "familie_kerst_firebase_url_v1";
+    const ACCESS_GRANTED_KEY = "familie_kerst_access_granted_v1";
+    const DEFAULT_APP_ACCESS_CODE = "KERST2026";
+    const channel = ("BroadcastChannel" in window) ? new BroadcastChannel("kerst_verlanglijst_sync") : null;
+
+    // Vaste Firebase Realtime Database URL voor alle gebruikers
+    const HARDCODED_FIREBASE_URL = "https://test-a5505-default-rtdb.europe-west1.firebasedatabase.app";
+
+    const DEFAULT_FAMILY_NAME = "Familie De Cock";
+    const DEFAULT_FAMILY_CODE = "DECOCK26";
+
+    const DEFAULT_MEMBERS = [
+      "Papa", "Annick", "Nele", "Pieter", "Jan", "Veronique", "Otto", "Océane", "Bjorn", "Lieselot"
+    ];
+
+    // Gedeelde basis-cadeaulijstjes gekoppeld aan uniek profiel-ID per persoon
+    const DEFAULT_SHARED_GIFTS = [
+      // Otto
+      { id: "o1", ownerId: "prof_otto", owner: "Otto", title: "Stapelblokken", price: "", url: "https://www.kruidvat.be/nl/stapelblokken/p/6269296", note: "Kruidvat", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "o2", ownerId: "prof_otto", owner: "Otto", title: "Connetix magnetic tiles", price: "", url: "", note: "Extra tegels zodat we groter kunnen bouwen of een knikkerbaan", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "o3", ownerId: "prof_otto", owner: "Otto", title: "Bumba speelt verstoppertje", price: "", url: "https://www.kruidvat.be/nl/studio-100-bumba-verstoppertje-spelen/p/3850113", note: "Kruidvat", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "o4", ownerId: "prof_otto", owner: "Otto", title: "Bumba geluiden spel", price: "", url: "", note: "", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "o5", ownerId: "prof_otto", owner: "Otto", title: "Skipak maat 86", price: "", url: "", note: "Maat 86", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "o6", ownerId: "prof_otto", owner: "Otto", title: "Fietshelm Scoot and Ride", price: "", url: "https://www.babylux.be/nl/kinderhelm-xxs-s-scoot-and-ride.html", note: "Maat XXS-S", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "o7", ownerId: "prof_otto", owner: "Otto", title: "Hondje Diggles", price: "", url: "https://www.dreamland.be/nl/producten/diggles/01746082", note: "DreamLand", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "o8", ownerId: "prof_otto", owner: "Otto", title: "Mijn eerste kassa", price: "", url: "https://www.dreamland.be/nl/producten/mijn-eerste-kassa/01614404", note: "DreamLand", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "o9", ownerId: "prof_otto", owner: "Otto", title: "Auto('s)", price: "", url: "", note: "", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "o10", ownerId: "prof_otto", owner: "Otto", title: "Boekje(s)", price: "", url: "", note: "", boughtById: null, boughtBy: null, boughtByFamily: null },
+
+      // Papa (Koen)
+      { id: "k1", ownerId: "prof_papa", owner: "Papa", title: "Staande lamp voor achter zetel", price: "", url: "", note: "Zelfde type als er nu staat, maar met LED warm-white + leeslampje (zonder tafeltje)", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "k2", ownerId: "prof_papa", owner: "Papa", title: "Braun MultiQuick 5 Pro (MQ 55254 M)", price: "99.99", url: "", note: "Handmixer en cutter 6-in-1, 1000W", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "k3", ownerId: "prof_papa", owner: "Papa", title: "Braun MultiQuick 5 staafmixer (MQ50202M)", price: "61.99", url: "", note: "Zwart, met hakmolen", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "k4", ownerId: "prof_papa", owner: "Papa", title: "Kodak Slide and Scan Digitale Filmscanner", price: "", url: "", note: "Apparaat om dia's en negatieven te digitaliseren (5 inch scherm)", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "k5", ownerId: "prof_papa", owner: "Papa", title: "Kookboek: Proeven van Italië", price: "", url: "", note: "François-Régis Gaudry & vrienden (Uitgeverij Lannoo)", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "k6", ownerId: "prof_papa", owner: "Papa", title: "Terre d'Hermès (Eau de toilette, deo of aftershave balsem)", price: "", url: "", note: "", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "k7", ownerId: "prof_papa", owner: "Papa", title: "Een lekker flesje wijn", price: "", url: "", note: "", boughtById: null, boughtBy: null, boughtByFamily: null },
+
+      // Jan
+      { id: "j1", ownerId: "prof_jan", owner: "Jan", title: "Computerspel Railway Empire II (PC)", price: "", url: "", note: "", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "j2", ownerId: "prof_jan", owner: "Jan", title: "Computerspel Battlefield 6 (PC)", price: "", url: "", note: "", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "j3", ownerId: "prof_jan", owner: "Jan", title: "Babyfoon Philips SCD 921/926", price: "", url: "", note: "", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "j4", ownerId: "prof_jan", owner: "Jan", title: "2dehands sterrenkijker", price: "", url: "", note: "", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "j5", ownerId: "prof_jan", owner: "Jan", title: "Wandhouder voor bezems", price: "", url: "", note: "", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "j6", ownerId: "prof_jan", owner: "Jan", title: "Adidas Entrada shorts - zwart", price: "", url: "", note: "Maat L", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "j7", ownerId: "prof_jan", owner: "Jan", title: "Wedze warme & waterdichte ski/snowboardjas 500", price: "", url: "", note: "Heren, blauw/zwart, maat L", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "j8", ownerId: "prof_jan", owner: "Jan", title: "Wedze Nekwarmers Firstheat zwart", price: "", url: "", note: "Volwassenen", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "j9", ownerId: "prof_jan", owner: "Jan", title: "Perfly overgrip badminton superior zwart (set van 3)", price: "", url: "", note: "Decathlon", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "j10", ownerId: "prof_jan", owner: "Jan", title: "Cadeaubon MediaMarkt / Vanden Borre", price: "", url: "", note: "Voor aankoop nieuwe GSM", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "j11", ownerId: "prof_jan", owner: "Jan", title: "VH infrarood paneel vouwbaar (175W)", price: "", url: "https://www.brico.be/nl/verwarmingen-airco-s/bijverwarming/stralingspanelen-infraroodpanelen/vh-infrarood-paneel-vouwbaar-175-watt-51-x-101-cm-3-standen-met-timer/10385863", note: "51 x 101 cm, 3 standen met timer (Brico)", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "j12", ownerId: "prof_jan", owner: "Jan", title: "Fling Smart infrarood verwarmingspaneel (600W)", price: "", url: "https://www.brico.be/nl/verwarmingen-airco-s/bijverwarming/stralingspanelen-infraroodpanelen/fling-smart-infrarood-paneelverwarmer-600w-wit/10599206", note: "Wit (Brico)", boughtById: null, boughtBy: null, boughtByFamily: null },
+
+      // Lieselot
+      { id: "l1", ownerId: "prof_lieselot", owner: "Lieselot", title: "Puzzelboekjes", price: "", url: "", note: "Tectonic, zeeslag, tentje-boompje, binair, mozaïek, ...", boughtById: null, boughtBy: null, boughtByFamily: null },
+
+      // Pieter
+      { id: "p1", ownerId: "prof_pieter", owner: "Pieter", title: "Cadeaubon A.S. Adventure", price: "", url: "", note: "", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "p2", ownerId: "prof_pieter", owner: "Pieter", title: "Boekenbon van boekenhandel 't Stad Leest", price: "", url: "", note: "", boughtById: null, boughtBy: null, boughtByFamily: null },
+
+      // Nele
+      { id: "n1", ownerId: "prof_nele", owner: "Nele", title: "Cadeaubon MediaMarkt / Vanden Borre", price: "", url: "", note: "", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "n2", ownerId: "prof_nele", owner: "Nele", title: "Nieuwe Chromecast", price: "", url: "", note: "", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "n3", ownerId: "prof_nele", owner: "Nele", title: "Loop Dream earplugs", price: "", url: "", note: "Zwart of blauw", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "n4", ownerId: "prof_nele", owner: "Nele", title: "Nieuwe fietstas", price: "", url: "", note: "", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "n5", ownerId: "prof_nele", owner: "Nele", title: "AXA ringslot Block XXL + hulp bij installatie", price: "", url: "https://www.bol.com/nl/nl/p/axa-ringslot-block-xxl/9200000084169679/", note: "En iemand om het te helpen installeren", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "n6", ownerId: "prof_nele", owner: "Nele", title: "Powerbank", price: "", url: "", note: "", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "n7", ownerId: "prof_nele", owner: "Nele", title: "Keukentrolley", price: "", url: "", note: "Max. 70 cm breed - 35 cm diep", boughtById: null, boughtBy: null, boughtByFamily: null },
+
+      // Veronique
+      { id: "v1", ownerId: "prof_veronique", owner: "Veronique", title: "Stoov extra batterij (S3)", price: "", url: "https://stoov.com/nl/products/battery-s3?variant=56676375167357", note: "", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "v2", ownerId: "prof_veronique", owner: "Veronique", title: "Paradijsvogelplant (Strelitzia nicolai)", price: "", url: "", note: "", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "v3", ownerId: "prof_veronique", owner: "Veronique", title: "Rugzakje Iris (Beige)", price: "", url: "https://bearlifestyle.nl/products/rugzakje-iris-beige-cl-32852", note: "Bear Lifestyle", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "v4", ownerId: "prof_veronique", owner: "Veronique", title: "Cadeaubon Brico of Hubo", price: "", url: "", note: "", boughtById: null, boughtBy: null, boughtByFamily: null },
+
+      // Bjorn
+      { id: "b1", ownerId: "prof_bjorn", owner: "Bjorn", title: "Desktop cleaning kit", price: "", url: "", note: "", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "b2", ownerId: "prof_bjorn", owner: "Bjorn", title: "Sportsokken", price: "", url: "", note: "", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "b3", ownerId: "prof_bjorn", owner: "Bjorn", title: "Sportshort van Victor / Forza", price: "", url: "", note: "Maat XL", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "b4", ownerId: "prof_bjorn", owner: "Bjorn", title: "Mandoline / groentesnijder", price: "", url: "", note: "", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "b5", ownerId: "prof_bjorn", owner: "Bjorn", title: "Avalo voetensteun stof", price: "", url: "https://www.bol.com/be/nl/p/avalo-voetensteun-stof/9300000169677701/", note: "Bol.com", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "b6", ownerId: "prof_bjorn", owner: "Bjorn", title: "Kadonation cadeaubon", price: "", url: "", note: "", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "b7", ownerId: "prof_bjorn", owner: "Bjorn", title: "Oil & Vinegar bon of cadeaumandje", price: "", url: "", note: "", boughtById: null, boughtBy: null, boughtByFamily: null },
+
+      // Océane
+      { id: "oc1", ownerId: "prof_oceane", owner: "Océane", title: "JBL Clip (liefst in het blauw)", price: "", url: "", note: "Kleur: blauw", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "oc2", ownerId: "prof_oceane", owner: "Océane", title: "Reizen drinkbus", price: "", url: "", note: "", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "oc3", ownerId: "prof_oceane", owner: "Océane", title: "Statief", price: "", url: "", note: "", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "oc4", ownerId: "prof_oceane", owner: "Océane", title: "The North Face sleutelhanger", price: "", url: "", note: "", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "oc5", ownerId: "prof_oceane", owner: "Océane", title: "The North Face toilettas", price: "", url: "", note: "", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "oc6", ownerId: "prof_oceane", owner: "Océane", title: "Cash geld in YEN", price: "", url: "", note: "Voor reis naar Japan", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "oc7", ownerId: "prof_oceane", owner: "Océane", title: "The North Face Duffel Bag S", price: "", url: "", note: "Maat S", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "oc8", ownerId: "prof_oceane", owner: "Océane", title: "Europese-Japanse adapter", price: "", url: "", note: "", boughtById: null, boughtBy: null, boughtByFamily: null },
+      { id: "oc9", ownerId: "prof_oceane", owner: "Océane", title: "Capitool Reisgids Japan", price: "", url: "https://www.bol.com/be/nl/p/capitool-reisgidsen-japan/9300000247547980/", note: "Bol.com", boughtById: null, boughtBy: null, boughtByFamily: null }
+    ];
+
+    function slugifyKey(str) {
+      return String(str || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "_")
+        .replace(/^_+|_+$/g, "") || "lid";
+    }
+
+    function normalizeFamilyCode(raw) {
+      return String(raw || "")
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, "")
+        .trim();
+    }
+
+    function generateUniqueFamilyCode(famName = "", existingFamilies = null) {
+      const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      const famMap = existingFamilies || ((rootState && rootState.families) || {});
+      const used = new Set(
+        Object.values(famMap)
+          .map(f => normalizeFamilyCode(f && f.inviteCode))
+          .filter(Boolean)
+      );
+      const prefix = slugifyKey(famName).toUpperCase().replace(/[^A-Z]/g, "").slice(0, 4);
+      for (let attempt = 0; attempt < 30; attempt++) {
+        let randPart = "";
+        const len = prefix.length >= 3 ? 4 : 6;
+        for (let i = 0; i < len; i++) {
+          randPart += alphabet[Math.floor(Math.random() * alphabet.length)];
+        }
+        const candidate = prefix.length >= 3 ? `${prefix}-${randPart}` : randPart;
+        if (!used.has(normalizeFamilyCode(candidate))) {
+          return candidate;
+        }
+      }
+      return "FAM-" + Date.now().toString(36).toUpperCase().slice(-5);
+    }
+
+    function findFamilyByInviteCode(rawCode) {
+      const norm = normalizeFamilyCode(rawCode);
+      if (!norm || !rootState || !rootState.families) return null;
+      for (const [famName, famObj] of Object.entries(rootState.families)) {
+        if (famObj && normalizeFamilyCode(famObj.inviteCode) === norm) {
+          return { famName, famObj };
+        }
+      }
+      return null;
+    }
+
+    function ensureFamilyInviteCodes(targetRootState = null) {
+      const stateObj = targetRootState || rootState;
+      if (!stateObj || !stateObj.families) return false;
+      let changed = false;
+      const seen = new Set();
+      Object.entries(stateObj.families).forEach(([famName, famObj]) => {
+        if (!famObj || typeof famObj !== "object") return;
+        let norm = normalizeFamilyCode(famObj.inviteCode);
+        if (!norm || seen.has(norm)) {
+          if (
+            famName === DEFAULT_FAMILY_NAME &&
+            !seen.has(normalizeFamilyCode(DEFAULT_FAMILY_CODE)) &&
+            !Object.values(stateObj.families).some(f => f !== famObj && normalizeFamilyCode(f && f.inviteCode) === normalizeFamilyCode(DEFAULT_FAMILY_CODE))
+          ) {
+            famObj.inviteCode = DEFAULT_FAMILY_CODE;
+          } else {
+            famObj.inviteCode = generateUniqueFamilyCode(famName, stateObj.families);
+          }
+          norm = normalizeFamilyCode(famObj.inviteCode);
+          changed = true;
+        }
+        seen.add(norm);
+      });
+      return changed;
+    }
+
+    function getUnlockedFamiliesSet() {
+      try {
+        const raw = localStorage.getItem(UNLOCKED_FAMILIES_KEY);
+        const arr = raw ? JSON.parse(raw) : [];
+        return new Set(Array.isArray(arr) ? arr : []);
+      } catch (e) {
+        return new Set();
+      }
+    }
+
+    function markFamilyUnlocked(famName) {
+      if (!famName) return;
+      const set = getUnlockedFamiliesSet();
+      set.add(famName);
+      localStorage.setItem(UNLOCKED_FAMILIES_KEY, JSON.stringify(Array.from(set)));
+    }
+
+    function isFamilyUnlockedByCode(famName) {
+      if (!famName) return false;
+      if (invitedCodeFromUrl) {
+        const match = findFamilyByInviteCode(invitedCodeFromUrl);
+        if (match && match.famName === famName) {
+          markFamilyUnlocked(famName);
+          return true;
+        }
+      }
+      return getUnlockedFamiliesSet().has(famName);
+    }
+
+    function generateProfileId(famName, memberName) {
+      const famSlug = slugifyKey(famName);
+      const nameSlug = slugifyKey(memberName);
+      const rand = Math.random().toString(36).slice(2, 6);
+      return `prof_${famSlug}_${nameSlug}_${rand}`;
+    }
+
+    function createDefaultProfiles() {
+      const profiles = {};
+      DEFAULT_MEMBERS.forEach(name => {
+        const id = `prof_${slugifyKey(name)}`;
+        profiles[id] = {
+          id,
+          name,
+          pin: null
+        };
+      });
+      return profiles;
+    }
+
+    function makeDefaultFamilyObj(options = {}) {
+      const memberIds = Array.isArray(options.memberIds) ? [...options.memberIds] : [];
+      const memberNames = memberIds.map(id => options.profiles && options.profiles[id] ? options.profiles[id].name : id);
+      const famName = options.famName || "";
+      const inviteCode = normalizeFamilyCode(options.inviteCode)
+        ? String(options.inviteCode).trim().toUpperCase()
+        : (famName === DEFAULT_FAMILY_NAME ? DEFAULT_FAMILY_CODE : generateUniqueFamilyCode(famName));
+      return {
+        inviteCode,
+        memberIds,
+        members: options.members ? [...options.members] : memberNames,
+        pins: options.pins ? { ...options.pins } : {},
+        isPrivate: Boolean(options.isPrivate),
+        createdBy: options.createdBy || null
+      };
+    }
+
+    function createInitialRootState() {
+      const profiles = createDefaultProfiles();
+      const defaultIds = Object.keys(profiles);
+      return {
+        appAccessCode: DEFAULT_APP_ACCESS_CODE,
+        profiles,
+        families: {
+          [DEFAULT_FAMILY_NAME]: makeDefaultFamilyObj({
+            famName: DEFAULT_FAMILY_NAME,
+            inviteCode: DEFAULT_FAMILY_CODE,
+            memberIds: defaultIds,
+            members: defaultIds.map(id => profiles[id].name),
+            profiles
+          })
+        },
+        sharedGifts: JSON.parse(JSON.stringify(DEFAULT_SHARED_GIFTS))
+      };
+    }
+
+    let cloudBaseUrl = detectCloudUrl();
+    let activeFamily = localStorage.getItem(ACTIVE_FAMILY_KEY) || DEFAULT_FAMILY_NAME;
+    let invitedFamilyFromUrl = null;
+    let invitedCodeFromUrl = null;
+    let rootState = loadLocalRootState();
+    ensureFamilyInviteCodes(rootState);
+    let currentUserId = null;
+    let pendingUserId = null;
+    let selectedPersonId = null;
+    let currentTab = "lists";
+    let pollTimer = null;
+
+    function detectInviteParamsFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      const famParam = (params.get("fam") || "").trim();
+      const famCodeParam = (params.get("famcode") || params.get("familyCode") || "").trim();
+      if (famParam) invitedFamilyFromUrl = famParam;
+      if (famCodeParam) invitedCodeFromUrl = normalizeFamilyCode(famCodeParam);
+    }
+
+    function detectCloudUrl() {
+      detectInviteParamsFromUrl();
+      const params = new URLSearchParams(window.location.search);
+      const fromUrl = params.get("db");
+      if (fromUrl) {
+        const cleaned = normalizeFirebaseUrl(fromUrl);
+        localStorage.setItem(CLOUD_URL_KEY, cleaned);
+        return cleaned;
+      }
+      if (HARDCODED_FIREBASE_URL) return normalizeFirebaseUrl(HARDCODED_FIREBASE_URL);
+      return normalizeFirebaseUrl(localStorage.getItem(CLOUD_URL_KEY) || "");
+    }
+
+    function normalizeFirebaseUrl(url) {
+      let u = String(url || "").trim();
+      if (!u) return "";
+      u = u.replace(/\/+$/, "");
+      if (u.endsWith(".json")) u = u.slice(0, -5);
+      return u;
+    }
+
+    function getEndpoint() {
+      if (!cloudBaseUrl) return "";
+      return `${cloudBaseUrl}/kerst2026_multi.json`;
+    }
+
+    function getProfile(profileId) {
+      if (!profileId || !rootState || !rootState.profiles) return null;
+      return rootState.profiles[profileId] || null;
+    }
+
+    function getProfileName(profileId, fallbackName = "") {
+      const p = getProfile(profileId);
+      return (p && p.name) ? p.name : (fallbackName || "Onbekend");
+    }
+
+    function getShortProfileCode(profileId) {
+      if (!profileId) return "";
+      const parts = String(profileId).split("_");
+      const suffix = parts[parts.length - 1] || profileId;
+      return `#${suffix.slice(0, 4).toUpperCase()}`;
+    }
+
+    function getFamilyMemberIds(famObj) {
+      if (!famObj) return [];
+      if (Array.isArray(famObj.memberIds)) return famObj.memberIds.filter(id => Boolean(getProfile(id)));
+      return [];
+    }
+
+    // Zorgt voor migratie én achterwaartse compatibiliteit met oudere data zonder profileId
+    function normalizeRootState(parsed) {
+      const base = createInitialRootState();
+      if (!parsed || typeof parsed !== "object") return base;
+      if (typeof parsed.appAccessCode === "string" && parsed.appAccessCode.trim()) {
+        base.appAccessCode = parsed.appAccessCode.trim();
+      }
+
+      const profiles = {};
+      if (parsed.profiles && typeof parsed.profiles === "object") {
+        Object.entries(parsed.profiles).forEach(([pid, pObj]) => {
+          if (!pid || typeof pObj !== "object") return;
+          profiles[pid] = {
+            id: pid,
+            name: String(pObj.name || pid).trim(),
+            pin: pObj.pin ? String(pObj.pin).trim() : null
+          };
+        });
+      }
+
+      const rawFamilies = (parsed.families && typeof parsed.families === "object")
+        ? parsed.families
+        : (Array.isArray(parsed.members)
+            ? {
+                [DEFAULT_FAMILY_NAME]: {
+                  members: [...parsed.members],
+                  pins: (parsed.pins && typeof parsed.pins === "object") ? { ...parsed.pins } : {}
+                }
+              }
+            : {});
+
+      const families = {};
+      const familyNameLookup = {};
+      const defaultProfiles = createDefaultProfiles();
+
+      Object.entries(rawFamilies).forEach(([famName, famData]) => {
+        if (!famName || typeof famData !== "object") return;
+        const memberIds = [];
+        const pinsMap = (famData.pins && typeof famData.pins === "object") ? famData.pins : {};
+        familyNameLookup[famName] = {};
+
+        if (Array.isArray(famData.memberIds) && famData.memberIds.length > 0) {
+          famData.memberIds.forEach(pid => {
+            if (profiles[pid]) {
+              if (!memberIds.includes(pid)) memberIds.push(pid);
+              const prof = profiles[pid];
+              if (!prof.pin && pinsMap[prof.name]) {
+                prof.pin = String(pinsMap[prof.name]);
+              }
+              familyNameLookup[famName][prof.name.toLowerCase()] = pid;
+            }
+          });
+        } else if (Array.isArray(famData.members)) {
+          famData.members.forEach(rawMember => {
+            const mName = String(rawMember || "").trim();
+            if (!mName) return;
+            let pid = null;
+            if (famName === DEFAULT_FAMILY_NAME) {
+              const candidateId = `prof_${slugifyKey(mName)}`;
+              if (defaultProfiles[candidateId]) {
+                pid = candidateId;
+                if (!profiles[pid]) {
+                  profiles[pid] = { ...defaultProfiles[candidateId] };
+                }
+              }
+            }
+            if (!pid) {
+              pid = `prof_${slugifyKey(famName)}_${slugifyKey(mName)}`;
+              if (profiles[pid] && profiles[pid].name.toLowerCase() !== mName.toLowerCase()) {
+                pid = generateProfileId(famName, mName);
+              }
+              if (!profiles[pid]) {
+                profiles[pid] = {
+                  id: pid,
+                  name: mName,
+                  pin: pinsMap[mName] ? String(pinsMap[mName]) : null
+                };
+              }
+            }
+            if (!profiles[pid].pin && pinsMap[mName]) {
+              profiles[pid].pin = String(pinsMap[mName]);
+            }
+            if (!memberIds.includes(pid)) memberIds.push(pid);
+            familyNameLookup[famName][mName.toLowerCase()] = pid;
+          });
+        }
+
+        const syncedPins = {};
+        memberIds.forEach(pid => {
+          const p = profiles[pid];
+          if (p && p.pin) syncedPins[p.name] = p.pin;
+        });
+
+        let createdBy = null;
+        if (famData.createdBy && typeof famData.createdBy === "object") {
+          const cbUser = famData.createdBy.user || "";
+          const cbFam = famData.createdBy.family || "";
+          const cbUserId = famData.createdBy.userId
+            || (familyNameLookup[cbFam] && familyNameLookup[cbFam][cbUser.toLowerCase()])
+            || Object.keys(profiles).find(id => profiles[id].name.toLowerCase() === cbUser.toLowerCase())
+            || null;
+          createdBy = {
+            family: cbFam,
+            user: cbUser,
+            userId: cbUserId
+          };
+        }
+
+        const normalizedInviteCode = normalizeFamilyCode(famData.inviteCode)
+          ? String(famData.inviteCode).trim().toUpperCase()
+          : (famName === DEFAULT_FAMILY_NAME ? DEFAULT_FAMILY_CODE : "");
+
+        families[famName] = {
+          inviteCode: normalizedInviteCode,
+          memberIds,
+          members: memberIds.map(id => profiles[id].name),
+          pins: syncedPins,
+          isPrivate: Boolean(famData.isPrivate),
+          createdBy
+        };
+      });
+
+      if (!Object.keys(families).length) {
+        return base;
+      }
+
+      function resolveProfileIdByName(personName, preferredFamName = null) {
+        if (!personName) return null;
+        const lower = String(personName).trim().toLowerCase();
+        if (preferredFamName && familyNameLookup[preferredFamName] && familyNameLookup[preferredFamName][lower]) {
+          return familyNameLookup[preferredFamName][lower];
+        }
+        if (familyNameLookup[DEFAULT_FAMILY_NAME] && familyNameLookup[DEFAULT_FAMILY_NAME][lower]) {
+          return familyNameLookup[DEFAULT_FAMILY_NAME][lower];
+        }
+        for (const lookup of Object.values(familyNameLookup)) {
+          if (lookup[lower]) return lookup[lower];
+        }
+        const existingProf = Object.values(profiles).find(p => p.name.toLowerCase() === lower);
+        if (existingProf) return existingProf.id;
+        return null;
+      }
+
+      const rawGifts = Array.isArray(parsed.sharedGifts)
+        ? parsed.sharedGifts
+        : (Array.isArray(parsed.gifts) ? parsed.gifts : DEFAULT_SHARED_GIFTS);
+
+      const sharedGifts = rawGifts.map(g => {
+        let ownerId = (g.ownerId && profiles[g.ownerId]) ? g.ownerId : resolveProfileIdByName(g.owner, g.ownerFamily || null);
+        if (!ownerId && g.owner) {
+          ownerId = `prof_${slugifyKey(g.owner)}`;
+          if (!profiles[ownerId]) {
+            profiles[ownerId] = { id: ownerId, name: String(g.owner).trim(), pin: null };
+          }
+        }
+        const ownerName = ownerId ? profiles[ownerId].name : (g.owner || "");
+
+        let boughtById = null;
+        if (g.boughtById && profiles[g.boughtById]) {
+          boughtById = g.boughtById;
+        } else if (g.boughtBy) {
+          boughtById = resolveProfileIdByName(g.boughtBy, g.boughtByFamily || null);
+        }
+        const boughtByName = boughtById ? profiles[boughtById].name : (g.boughtBy || null);
+
+        return {
+          ...g,
+          ownerId: ownerId || null,
+          owner: ownerName,
+          boughtById: boughtById || null,
+          boughtBy: boughtByName,
+          boughtByFamily: g.boughtByFamily || null
+        };
+      });
+
+      base.profiles = profiles;
+      base.families = families;
+      base.sharedGifts = sharedGifts;
+      ensureFamilyInviteCodes(base);
+      return base;
+    }
+
+    function loadLocalRootState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          return normalizeRootState(JSON.parse(raw));
+        }
+        for (const legacyKey of LEGACY_STORAGE_KEYS) {
+          const legacyRaw = localStorage.getItem(legacyKey);
+          if (legacyRaw) {
+            return normalizeRootState(JSON.parse(legacyRaw));
+          }
+        }
+      } catch (e) {}
+      return createInitialRootState();
+    }
+
+    const LAST_USER_KEY = "familie_kerst_last_user_v2";
+
+    function getViewerProfileId() {
+      if (currentUserId && getProfile(currentUserId)) return currentUserId;
+      try {
+        const raw = sessionStorage.getItem(LAST_USER_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && parsed.userId && getProfile(parsed.userId)) return parsed.userId;
+        }
+      } catch (e) {}
+      return null;
+    }
+
+    function canSeeFamily(famName) {
+      const fam = rootState.families && rootState.families[famName];
+      if (!fam) return false;
+      if (!fam.isPrivate) return true;
+      if (isFamilyUnlockedByCode(famName)) return true;
+      if (invitedFamilyFromUrl && famName.toLowerCase() === invitedFamilyFromUrl.toLowerCase()) {
+        return true;
+      }
+      const viewerId = getViewerProfileId();
+      if (!viewerId) return false;
+      if (fam.createdBy && fam.createdBy.userId === viewerId) {
+        return true;
+      }
+      const memberIds = getFamilyMemberIds(fam);
+      if (memberIds.includes(viewerId)) {
+        return true;
+      }
+      return false;
+    }
+
+    function getVisibleFamilyNames() {
+      const names = Object.keys(rootState.families || {}).filter(canSeeFamily);
+      if (names.length > 0) return names;
+      if (!rootState.families[DEFAULT_FAMILY_NAME]) {
+        const profiles = createDefaultProfiles();
+        rootState.profiles = { ...profiles, ...(rootState.profiles || {}) };
+        const defaultIds = Object.keys(profiles);
+        rootState.families[DEFAULT_FAMILY_NAME] = makeDefaultFamilyObj({
+          famName: DEFAULT_FAMILY_NAME,
+          inviteCode: DEFAULT_FAMILY_CODE,
+          memberIds: defaultIds,
+          profiles: rootState.profiles
+        });
+      }
+      return [DEFAULT_FAMILY_NAME];
+    }
+
+    function ensureActiveFamily() {
+      ensureFamilyInviteCodes(rootState);
+      const visibleNames = getVisibleFamilyNames();
+      if (!visibleNames.includes(activeFamily)) {
+        activeFamily = visibleNames.includes(DEFAULT_FAMILY_NAME) ? DEFAULT_FAMILY_NAME : visibleNames[0];
+        if (!rootState.families[activeFamily]) {
+          rootState.families[activeFamily] = makeDefaultFamilyObj({ famName: activeFamily, memberIds: [], profiles: rootState.profiles });
+        }
+      }
+      localStorage.setItem(ACTIVE_FAMILY_KEY, activeFamily);
+      return rootState.families[activeFamily];
+    }
+
+    function parsePrice(priceStr) {
+      if (!priceStr) return null;
+      const cleaned = String(priceStr)
+        .replace(/€/g, "")
+        .replace(/\s+/g, "")
+        .replace(",", ".");
+      if (!/^\d+(\.\d+)?$/.test(cleaned)) return null;
+      const num = parseFloat(cleaned);
+      return isNaN(num) ? null : num;
+    }
+
+    function formatEuro(num) {
+      return `€ ${Number(num || 0).toFixed(2).replace(".", ",")}`;
+    }
+
+    function renderPriceBadge(priceStr) {
+      const parsed = parsePrice(priceStr);
+      if (parsed !== null) {
+        return `<span class="price-pill">${escapeHtml(formatEuro(parsed))}</span>`;
+      }
+      if (priceStr && String(priceStr).trim()) {
+        return `<span class="price-pill">${escapeHtml(String(priceStr).trim())}</span>`;
+      }
+      return `<span class="price-unpriced">Prijs n.t.b.</span>`;
+    }
+
+    function updateSyncBadge(statusText, isLive) {
+      const badge = document.getElementById("syncBadge");
+      badge.textContent = statusText;
+      badge.classList.toggle("badge-live", Boolean(isLive));
+    }
+
+    async function pullFromCloud(silent = false) {
+      const endpoint = getEndpoint();
+      if (!endpoint) {
+        updateSyncBadge("☁️ Lokaal (koppel cloud)", false);
+        return;
+      }
+      if (!silent) updateSyncBadge("🔄 Synchroniseren...", true);
+      try {
+        const res = await fetch(endpoint, { cache: "no-store" });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+        if (data && typeof data === "object") {
+          rootState = normalizeRootState(data);
+          ensureActiveFamily();
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(rootState));
+          const hasAccess = hasAppAccess();
+          const gateEl = document.getElementById("accessGateView");
+          const loginEl = document.getElementById("loginView");
+          const appEl = document.getElementById("appView");
+          const welcomeEl = document.getElementById("welcomeView");
+          if (!hasAccess) {
+            checkAndRenderAccessGate();
+          } else if (currentUserId) {
+            const fam = ensureActiveFamily();
+            const memberIds = getFamilyMemberIds(fam);
+            if (!memberIds.includes(currentUserId) || !getProfile(currentUserId)) {
+              logout(true);
+            } else {
+              if (gateEl) gateEl.classList.add("hidden");
+              if (welcomeEl) welcomeEl.classList.add("hidden");
+              if (loginEl) loginEl.classList.add("hidden");
+              if (appEl) appEl.classList.remove("hidden");
+              updateCurrentUserBadge();
+              renderApp();
+            }
+          } else if (loginEl && !loginEl.classList.contains("hidden")) {
+            renderLogin();
+          } else if (welcomeEl && !welcomeEl.classList.contains("hidden")) {
+            showWelcomeView();
+          }
+        } else if (data === null) {
+          await pushToCloud();
+        }
+        updateSyncBadge("🟢 Live gedeeld (Cloud)", true);
+      } catch (err) {
+        updateSyncBadge("⚠️ Cloud offline (lokaal actief)", false);
+      }
+    }
+
+    function syncLegacyFamilyFields() {
+      if (!rootState || !rootState.families) return;
+      ensureFamilyInviteCodes(rootState);
+      Object.values(rootState.families).forEach(famObj => {
+        if (!famObj) return;
+        const memberIds = getFamilyMemberIds(famObj);
+        famObj.memberIds = memberIds;
+        famObj.members = memberIds.map(id => getProfileName(id));
+        const pins = {};
+        memberIds.forEach(id => {
+          const p = getProfile(id);
+          if (p && p.pin) pins[p.name] = p.pin;
+        });
+        famObj.pins = pins;
+      });
+    }
+
+    async function pushToCloud() {
+      ensureActiveFamily();
+      syncLegacyFamilyFields();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(rootState));
+      if (channel) channel.postMessage({ type: "SYNC", rootState, activeFamily });
+
+      const endpoint = getEndpoint();
+      if (!endpoint) return;
+      updateSyncBadge("🔄 Opslaan in cloud...", true);
+      try {
+        const res = await fetch(endpoint, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(rootState)
+        });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        updateSyncBadge("🟢 Live gedeeld (Cloud)", true);
+      } catch (err) {
+        updateSyncBadge("⚠️ Cloud fout (opgeslagen op toestel)", false);
+      }
+    }
+
+    function syncNow() {
+      pullFromCloud(false);
+    }
+
+    function startPolling() {
+      if (pollTimer) clearInterval(pollTimer);
+      pollTimer = setInterval(() => {
+        if (cloudBaseUrl && document.visibilityState === "visible") {
+          pullFromCloud(true);
+        }
+      }, 12000);
+    }
+
+    if (channel) {
+      channel.onmessage = (event) => {
+        if (event.data && event.data.type === "SYNC" && event.data.rootState) {
+          rootState = normalizeRootState(event.data.rootState);
+          ensureActiveFamily();
+          if (currentUserId) renderApp();
+          else renderLogin();
+        }
+      };
+    }
+
+    // Cloud Modal & Toegangscode functies
+    function getExpectedAccessCode() {
+      return (rootState && rootState.appAccessCode) ? String(rootState.appAccessCode).trim() : DEFAULT_APP_ACCESS_CODE;
+    }
+
+    function hasAppAccess() {
+      const expected = getExpectedAccessCode();
+      const params = new URLSearchParams(window.location.search);
+      const urlCode = (params.get("code") || "").trim();
+      if (urlCode && urlCode.toLowerCase() === expected.toLowerCase()) {
+        localStorage.setItem(ACCESS_GRANTED_KEY, expected);
+        return true;
+      }
+      const famCodeParam = normalizeFamilyCode(params.get("famcode") || params.get("familyCode") || "");
+      if (famCodeParam && findFamilyByInviteCode(famCodeParam)) {
+        localStorage.setItem(ACCESS_GRANTED_KEY, expected);
+        return true;
+      }
+      const saved = (localStorage.getItem(ACCESS_GRANTED_KEY) || "").trim();
+      return Boolean(saved && saved.toLowerCase() === expected.toLowerCase());
+    }
+
+    function checkAndRenderAccessGate() {
+      const gateEl = document.getElementById("accessGateView");
+      const loginEl = document.getElementById("loginView");
+      const appEl = document.getElementById("appView");
+      const welcomeEl = document.getElementById("welcomeView");
+      if (hasAppAccess()) {
+        gateEl.classList.add("hidden");
+        if (currentUserId) {
+          if (welcomeEl) welcomeEl.classList.add("hidden");
+          loginEl.classList.add("hidden");
+          appEl.classList.remove("hidden");
+        } else {
+          appEl.classList.add("hidden");
+          loginEl.classList.add("hidden");
+          if (welcomeEl) welcomeEl.classList.remove("hidden");
+        }
+        return true;
+      } else {
+        currentUserId = null;
+        pendingUserId = null;
+        if (welcomeEl) welcomeEl.classList.add("hidden");
+        appEl.classList.add("hidden");
+        loginEl.classList.add("hidden");
+        document.getElementById("logoutBtn").classList.add("hidden");
+        document.getElementById("userBadge").classList.add("hidden");
+        gateEl.classList.remove("hidden");
+        return false;
+      }
+    }
+
+    async function submitAccessCode() {
+      const inp = document.getElementById("accessCodeInput");
+      const err = document.getElementById("accessGateError");
+      const rawEntered = (inp.value || "").trim();
+      const expected = getExpectedAccessCode();
+
+      if (cloudBaseUrl) {
+        await pullFromCloud(true);
+      }
+
+      const matchedFamily = findFamilyByInviteCode(rawEntered);
+      if (matchedFamily) {
+        err.classList.add("hidden");
+        localStorage.setItem(ACCESS_GRANTED_KEY, expected);
+        markFamilyUnlocked(matchedFamily.famName);
+        activeFamily = matchedFamily.famName;
+        localStorage.setItem(ACTIVE_FAMILY_KEY, activeFamily);
+        inp.value = "";
+        updateFamilyBadge();
+        checkAndRenderAccessGate();
+        hideWelcomeViewAndShowLogin();
+        return;
+      }
+
+      if (!rawEntered || rawEntered.toLowerCase() !== expected.toLowerCase()) {
+        err.textContent = "Ongeldige code. Vul een geldige familiecode of de familie-toegangscode in.";
+        err.classList.remove("hidden");
+        return;
+      }
+
+      err.classList.add("hidden");
+      localStorage.setItem(ACCESS_GRANTED_KEY, expected);
+      inp.value = "";
+      checkAndRenderAccessGate();
+      showWelcomeView();
+    }
+
+    async function openFamilyByInviteCode(inputId, errorId) {
+      const inp = document.getElementById(inputId);
+      const err = document.getElementById(errorId);
+      const rawCode = inp ? inp.value.trim() : "";
+      const normCode = normalizeFamilyCode(rawCode);
+
+      if (!normCode) {
+        if (err) {
+          err.textContent = "Vul eerst een unieke familiecode in.";
+          err.classList.remove("hidden");
+        }
+        return;
+      }
+
+      if (cloudBaseUrl) {
+        await pullFromCloud(true);
+      }
+
+      const found = findFamilyByInviteCode(normCode);
+      if (!found) {
+        if (err) {
+          err.textContent = `Geen familie gevonden met code "${rawCode.toUpperCase()}".`;
+          err.classList.remove("hidden");
+        }
+        return;
+      }
+
+      if (err) {
+        err.textContent = "";
+        err.classList.add("hidden");
+      }
+
+      markFamilyUnlocked(found.famName);
+      activeFamily = found.famName;
+      localStorage.setItem(ACTIVE_FAMILY_KEY, activeFamily);
+      if (inp) inp.value = "";
+      updateFamilyBadge();
+      if (currentUserId) {
+        await logout(true);
+      }
+      hideWelcomeViewAndShowLogin();
+    }
+
+    function copyActiveFamilyCode() {
+      const fam = ensureActiveFamily();
+      const code = fam && fam.inviteCode ? fam.inviteCode : DEFAULT_FAMILY_CODE;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(code).then(() => {
+          alert(`Familiecode "${code}" voor ${activeFamily} gekopieerd!`);
+        }).catch(() => {
+          prompt(`Kopieer de familiecode voor ${activeFamily}:`, code);
+        });
+      } else {
+        prompt(`Kopieer de familiecode voor ${activeFamily}:`, code);
+      }
+    }
+
+    async function regenerateActiveFamilyCode() {
+      const fam = ensureActiveFamily();
+      if (!fam) return;
+      if (!confirm(`Nieuwe unieke familiecode genereren voor "${activeFamily}"? De oude code werkt dan niet meer.`)) return;
+      fam.inviteCode = generateUniqueFamilyCode(activeFamily);
+      await pushToCloud();
+      renderLogin();
+    }
+
+    async function updateAppAccessCode() {
+      const inp = document.getElementById("appAccessCodeSetting");
+      const val = (inp.value || "").trim();
+      if (val.length < 4) {
+        alert("Kies een toegangscode van minstens 4 tekens.");
+        return;
+      }
+      rootState.appAccessCode = val;
+      localStorage.setItem(ACCESS_GRANTED_KEY, val);
+      await pushToCloud();
+      document.getElementById("cloudStatusMsg").textContent = "✅ Nieuwe familie-toegangscode opgeslagen!";
+    }
+
+    function openCloudModal() {
+      document.getElementById("firebaseUrlInput").value = cloudBaseUrl || "";
+      const codeInput = document.getElementById("appAccessCodeSetting");
+      if (codeInput) codeInput.value = getExpectedAccessCode();
+      document.getElementById("cloudStatusMsg").textContent = cloudBaseUrl
+        ? "Actieve database gekoppeld."
+        : "Nog geen cloud-URL ingesteld.";
+      document.getElementById("cloudModal").classList.remove("hidden");
+    }
+
+    function closeCloudModal() {
+      document.getElementById("cloudModal").classList.add("hidden");
+    }
+
+    async function saveCloudConfig() {
+      const val = normalizeFirebaseUrl(document.getElementById("firebaseUrlInput").value);
+      cloudBaseUrl = val;
+      if (val) {
+        localStorage.setItem(CLOUD_URL_KEY, val);
+        document.getElementById("cloudStatusMsg").textContent = "Verbinden met cloud...";
+        await pullFromCloud(false);
+        document.getElementById("cloudStatusMsg").textContent = "✅ Gekoppeld en gesynchroniseerd!";
+      } else {
+        localStorage.removeItem(CLOUD_URL_KEY);
+        updateSyncBadge("☁️ Lokaal (koppel cloud)", false);
+        document.getElementById("cloudStatusMsg").textContent = "Cloudkoppeling verwijderd.";
+      }
+    }
+
+    function copyShareLink() {
+      const url = new URL(window.location.origin + window.location.pathname);
+      url.searchParams.set("code", getExpectedAccessCode());
+      if (cloudBaseUrl && cloudBaseUrl !== HARDCODED_FIREBASE_URL) {
+        url.searchParams.set("db", cloudBaseUrl);
+      }
+      const shareUrl = url.toString();
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(shareUrl).then(() => {
+          document.getElementById("cloudStatusMsg").textContent = "📋 Deel-link gekopieerd naar klembord!";
+        });
+      } else {
+        prompt("Kopieer deze link voor de familie:", shareUrl);
+      }
+    }
+
+    function getFamilyInviteUrl(famName = activeFamily) {
+      const url = new URL(window.location.origin + window.location.pathname);
+      const famObj = rootState.families && rootState.families[famName];
+      if (famName) url.searchParams.set("fam", famName);
+      if (famObj && famObj.inviteCode) url.searchParams.set("famcode", famObj.inviteCode);
+      url.searchParams.set("code", getExpectedAccessCode());
+      if (cloudBaseUrl && cloudBaseUrl !== HARDCODED_FIREBASE_URL) {
+        url.searchParams.set("db", cloudBaseUrl);
+      }
+      return url.toString();
+    }
+
+    function copyFamilyInviteLink() {
+      const inviteUrl = getFamilyInviteUrl(activeFamily);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(inviteUrl).then(() => {
+          alert(`Uitnodigingslink voor "${activeFamily}" gekopieerd:\n${inviteUrl}`);
+        }).catch(() => {
+          prompt(`Kopieer de uitnodigingslink voor "${activeFamily}":`, inviteUrl);
+        });
+      } else {
+        prompt(`Kopieer de uitnodigingslink voor "${activeFamily}":`, inviteUrl);
+      }
+    }
+
+    async function resetToDefaultGifts() {
+      if (!confirm("Wil je de standaard cadeaulijstjes uit de kerst-PDF opnieuw inladen? (Profielen en pincodes blijven bewaard)")) return;
+      const defaultProfiles = createDefaultProfiles();
+      if (!rootState.profiles) rootState.profiles = {};
+      Object.entries(defaultProfiles).forEach(([pid, pObj]) => {
+        if (!rootState.profiles[pid]) {
+          rootState.profiles[pid] = pObj;
+        }
+      });
+      const fam = ensureActiveFamily();
+      if (getFamilyMemberIds(fam).length === 0) {
+        fam.memberIds = Object.keys(defaultProfiles);
+      }
+      rootState.sharedGifts = JSON.parse(JSON.stringify(DEFAULT_SHARED_GIFTS));
+      await pushToCloud();
+      if (currentUserId) renderApp();
+      else renderLogin();
+    }
+
+    // Kerstsfeer: lichtjes & sneeuw
+    function initDecorations() {
+      const lights = document.getElementById("lights");
+      for (let i = 0; i < 24; i++) {
+        const b = document.createElement("div");
+        b.className = "bulb";
+        lights.appendChild(b);
+      }
+      const snow = document.getElementById("snow");
+      const flakes = ["❄", "❅", "❆", "•"];
+      for (let i = 0; i < 28; i++) {
+        const f = document.createElement("div");
+        f.className = "snowflake";
+        f.textContent = flakes[i % flakes.length];
+        f.style.left = Math.random() * 100 + "vw";
+        f.style.fontSize = (10 + Math.random() * 14) + "px";
+        f.style.animationDuration = (7 + Math.random() * 11) + "s";
+        f.style.animationDelay = (-Math.random() * 12) + "s";
+        snow.appendChild(f);
+      }
+    }
+
+    function updateFamilyBadge() {
+      const fb = document.getElementById("familyBadge");
+      const fam = rootState.families && rootState.families[activeFamily];
+      if (fb) {
+        fb.textContent = fam && fam.inviteCode
+          ? `👨‍👩‍👧‍👦 ${activeFamily} • ${fam.inviteCode}`
+          : `👨‍👩‍👧‍👦 ${activeFamily}`;
+      }
+    }
+
+    function updateCurrentUserBadge() {
+      const ub = document.getElementById("userBadge");
+      if (!ub || !currentUserId) return;
+      const name = getProfileName(currentUserId);
+      const code = getShortProfileCode(currentUserId);
+      ub.textContent = `👤 ${name} (${code} • ${activeFamily})`;
+      ub.title = `Profiel-ID: ${currentUserId}`;
+      ub.classList.remove("hidden");
+    }
+
+    async function switchFamily(famName) {
+      if (!famName || !rootState.families[famName]) return;
+      if (invitedFamilyFromUrl && famName.toLowerCase() !== invitedFamilyFromUrl.toLowerCase()) {
+        invitedFamilyFromUrl = null;
+      }
+      activeFamily = famName;
+      localStorage.setItem(ACTIVE_FAMILY_KEY, activeFamily);
+      updateFamilyBadge();
+      if (currentUserId) {
+        await logout(true);
+      } else {
+        cancelPin();
+        renderLogin();
+      }
+    }
+
+    async function addNewFamily() {
+      const inp = document.getElementById("newFamilyName");
+      const rawName = inp.value.trim();
+      if (!rawName) return;
+      const creatorUserId = getViewerProfileId();
+      const creatorUser = creatorUserId ? getProfileName(creatorUserId) : null;
+      const creatorFamily = activeFamily;
+      const existingKey = Object.keys(rootState.families).find(k => k.toLowerCase() === rawName.toLowerCase());
+      if (existingKey) {
+        if (!canSeeFamily(existingKey)) {
+          alert("Deze familienaam bestaat al en is privé. Gebruik de unieke familiecode om toegang te krijgen.");
+          return;
+        }
+        activeFamily = existingKey;
+        localStorage.setItem(ACTIVE_FAMILY_KEY, activeFamily);
+        inp.value = "";
+        updateFamilyBadge();
+        renderLogin();
+        return;
+      }
+      const uniqueCode = generateUniqueFamilyCode(rawName);
+      rootState.families[rawName] = makeDefaultFamilyObj({
+        famName: rawName,
+        inviteCode: uniqueCode,
+        memberIds: [],
+        members: [],
+        pins: {},
+        isPrivate: Boolean(creatorUserId),
+        createdBy: creatorUserId ? { family: creatorFamily, user: creatorUser, userId: creatorUserId } : null
+      });
+      markFamilyUnlocked(rawName);
+      activeFamily = rawName;
+      localStorage.setItem(ACTIVE_FAMILY_KEY, activeFamily);
+      inp.value = "";
+      cancelPin();
+      updateFamilyBadge();
+      await pushToCloud();
+      renderLogin();
+    }
+
+    // Welkomstscherm logica: bestaande familie openen, code gebruiken of nieuwe familie aanmaken
+    function showWelcomeView() {
+      const welcomeEl = document.getElementById("welcomeView");
+      const loginEl = document.getElementById("loginView");
+      const appEl = document.getElementById("appView");
+      const selectEl = document.getElementById("welcomeFamilySelect");
+      const errEl = document.getElementById("welcomeError");
+
+      if (errEl) {
+        errEl.textContent = "";
+        errEl.classList.add("hidden");
+      }
+
+      if (selectEl) {
+        selectEl.innerHTML = "";
+        const families = getVisibleFamilyNames();
+        families.forEach(famName => {
+          const famObj = rootState.families[famName];
+          const opt = document.createElement("option");
+          opt.value = famName;
+          opt.textContent = famObj && famObj.isPrivate ? `🔒 ${famName}` : famName;
+          opt.selected = famName === activeFamily;
+          selectEl.appendChild(opt);
+        });
+      }
+
+      if (loginEl) loginEl.classList.add("hidden");
+      if (appEl) appEl.classList.add("hidden");
+      if (welcomeEl) welcomeEl.classList.remove("hidden");
+    }
+
+    function hideWelcomeViewAndShowLogin() {
+      const welcomeEl = document.getElementById("welcomeView");
+      const loginEl = document.getElementById("loginView");
+      if (welcomeEl) welcomeEl.classList.add("hidden");
+      if (loginEl) loginEl.classList.remove("hidden");
+      cancelPin();
+      renderLogin();
+    }
+
+    async function openExistingFamilyFromWelcome() {
+      const selectEl = document.getElementById("welcomeFamilySelect");
+      const errEl = document.getElementById("welcomeError");
+      const chosen = selectEl ? selectEl.value : "";
+
+      if (!chosen || !rootState.families[chosen]) {
+        if (errEl) {
+          errEl.textContent = "Kies een geldige bestaande familie.";
+          errEl.classList.remove("hidden");
+        }
+        return;
+      }
+
+      if (errEl) errEl.classList.add("hidden");
+      if (invitedFamilyFromUrl && chosen.toLowerCase() !== invitedFamilyFromUrl.toLowerCase()) {
+        invitedFamilyFromUrl = null;
+      }
+      activeFamily = chosen;
+      localStorage.setItem(ACTIVE_FAMILY_KEY, activeFamily);
+      updateFamilyBadge();
+      if (currentUserId) {
+        await logout(true);
+      }
+      hideWelcomeViewAndShowLogin();
+    }
+
+    async function createFamilyFromWelcome() {
+      const inputEl = document.getElementById("welcomeNewFamilyInput");
+      const errEl = document.getElementById("welcomeError");
+      const rawName = inputEl ? inputEl.value.trim() : "";
+
+      if (!rawName) {
+        if (errEl) {
+          errEl.textContent = "Vul eerst een naam in voor de nieuwe familie.";
+          errEl.classList.remove("hidden");
+        }
+        return;
+      }
+
+      const creatorUserId = getViewerProfileId();
+      const creatorUser = creatorUserId ? getProfileName(creatorUserId) : null;
+      const creatorFamily = activeFamily;
+      const existingKey = Object.keys(rootState.families || {}).find(
+        k => k.toLowerCase() === rawName.toLowerCase()
+      );
+
+      if (existingKey) {
+        if (!canSeeFamily(existingKey)) {
+          if (errEl) {
+            errEl.textContent = "Deze familienaam bestaat al en is privé. Gebruik de unieke familiecode om toegang te krijgen.";
+            errEl.classList.remove("hidden");
+          }
+          return;
+        }
+        if (errEl) errEl.classList.add("hidden");
+        activeFamily = existingKey;
+        localStorage.setItem(ACTIVE_FAMILY_KEY, activeFamily);
+        inputEl.value = "";
+        updateFamilyBadge();
+        hideWelcomeViewAndShowLogin();
+        return;
+      }
+
+      if (errEl) errEl.classList.add("hidden");
+      const uniqueCode = generateUniqueFamilyCode(rawName);
+      rootState.families[rawName] = makeDefaultFamilyObj({
+        famName: rawName,
+        inviteCode: uniqueCode,
+        memberIds: [],
+        members: [],
+        pins: {},
+        isPrivate: Boolean(creatorUserId),
+        createdBy: creatorUserId ? { family: creatorFamily, user: creatorUser, userId: creatorUserId } : null
+      });
+      markFamilyUnlocked(rawName);
+      activeFamily = rawName;
+      localStorage.setItem(ACTIVE_FAMILY_KEY, activeFamily);
+      inputEl.value = "";
+      updateFamilyBadge();
+      await pushToCloud();
+      hideWelcomeViewAndShowLogin();
+    }
+
+    // Login logica op basis van uniek profiel-ID per lid
+    function renderLogin() {
+      updateFamilyBadge();
+      const fam = ensureActiveFamily();
+
+      const codeBadge = document.getElementById("activeFamilyCodeBadge");
+      if (codeBadge) {
+        codeBadge.textContent = fam.inviteCode || DEFAULT_FAMILY_CODE;
+      }
+      const loginCodeErr = document.getElementById("loginCodeError");
+      if (loginCodeErr) {
+        loginCodeErr.textContent = "";
+        loginCodeErr.classList.add("hidden");
+      }
+
+      const sel = document.getElementById("familySelect");
+      if (sel) {
+        sel.innerHTML = "";
+        getVisibleFamilyNames().forEach(famName => {
+          const famObj = rootState.families[famName];
+          const opt = document.createElement("option");
+          opt.value = famName;
+          opt.textContent = famObj && famObj.isPrivate ? `🔒 ${famName}` : famName;
+          opt.selected = famName === activeFamily;
+          sel.appendChild(opt);
+        });
+      }
+
+      const memberIds = getFamilyMemberIds(fam);
+      document.getElementById("loginHeading").textContent = `🎅 Wie ben jij? (${activeFamily})`;
+      document.getElementById("loginSubtitle").textContent = memberIds.length > 0
+        ? `Kies je naam in ${activeFamily}. Elk lid heeft een eigen uniek profiel-ID en pincode.`
+        : `Er staan nog geen leden in ${activeFamily}. Voeg hieronder je eerste familielid toe!`;
+
+      const grid = document.getElementById("memberGrid");
+      grid.innerHTML = "";
+      if (memberIds.length === 0) {
+        grid.innerHTML = `<p style="grid-column: 1 / -1; color: var(--text-muted); font-size: 0.88rem; padding: 10px;">Nog geen leden in deze familie.</p>`;
+        renderLinkExistingProfileBar();
+        return;
+      }
+
+      memberIds.forEach(profileId => {
+        const prof = getProfile(profileId);
+        if (!prof) return;
+        const hasPin = Boolean(prof.pin);
+        const shortId = getShortProfileCode(profileId);
+        const card = document.createElement("div");
+        card.className = "member-card";
+        card.title = `Profiel-ID: ${profileId}`;
+        card.onclick = () => selectMemberForLogin(profileId);
+
+        const delBtn = document.createElement("button");
+        delBtn.type = "button";
+        delBtn.className = "member-delete-btn";
+        delBtn.textContent = "🗑️";
+        delBtn.title = `Verwijder ${prof.name} (${shortId}) uit ${activeFamily}`;
+        delBtn.onclick = (e) => {
+          e.stopPropagation();
+          deleteMember(profileId);
+        };
+
+        card.innerHTML = `
+          <span class="avatar">${hasPin ? "🔒" : "🎄"}</span>
+          <strong>${escapeHtml(prof.name)}</strong>
+          <span class="pin-tag">${hasPin ? "Pincode actief" : "Kies pincode"} • ${escapeHtml(shortId)}</span>
+        `;
+        card.appendChild(delBtn);
+        grid.appendChild(card);
+      });
+
+      renderLinkExistingProfileBar();
+    }
+
+    // Optioneel bestaand profiel uit een andere zichtbare familie koppelen aan de actieve familie
+    function renderLinkExistingProfileBar() {
+      const container = document.getElementById("linkExistingProfileBox");
+      const selectEl = document.getElementById("existingProfileSelect");
+      if (!container || !selectEl) return;
+
+      const fam = ensureActiveFamily();
+      const currentMemberIds = new Set(getFamilyMemberIds(fam));
+      const candidateProfiles = [];
+
+      getVisibleFamilyNames().forEach(famName => {
+        if (famName === activeFamily) return;
+        const otherFam = rootState.families[famName];
+        getFamilyMemberIds(otherFam).forEach(pid => {
+          if (currentMemberIds.has(pid)) return;
+          const prof = getProfile(pid);
+          if (prof && !candidateProfiles.some(item => item.id === pid)) {
+            candidateProfiles.push({ id: pid, name: prof.name, fromFamily: famName });
+          }
+        });
+      });
+
+      if (candidateProfiles.length === 0) {
+        container.classList.add("hidden");
+        return;
+      }
+
+      selectEl.innerHTML = "";
+      candidateProfiles.forEach(item => {
+        const opt = document.createElement("option");
+        opt.value = item.id;
+        opt.textContent = `${item.name} (${getShortProfileCode(item.id)} • ${item.fromFamily})`;
+        selectEl.appendChild(opt);
+      });
+      container.classList.remove("hidden");
+    }
+
+    async function linkExistingProfileToActiveFamily() {
+      const selectEl = document.getElementById("existingProfileSelect");
+      if (!selectEl || !selectEl.value) return;
+      const profileId = selectEl.value;
+      const prof = getProfile(profileId);
+      if (!prof) return;
+      const fam = ensureActiveFamily();
+      const memberIds = getFamilyMemberIds(fam);
+      if (memberIds.includes(profileId)) {
+        alert("Dit profiel is al gekoppeld aan deze familie.");
+        return;
+      }
+      fam.memberIds = [...memberIds, profileId];
+      await pushToCloud();
+      renderLogin();
+    }
+
+    async function deleteMember(profileId) {
+      const prof = getProfile(profileId);
+      const label = prof ? `${prof.name} (${getShortProfileCode(profileId)})` : profileId;
+      if (!confirm(`Weet je zeker dat je "${label}" wilt verwijderen uit ${activeFamily}?`)) return;
+      const fam = ensureActiveFamily();
+      fam.memberIds = getFamilyMemberIds(fam).filter(id => id !== profileId);
+
+      const stillUsedElsewhere = Object.values(rootState.families || {}).some(
+        f => f && getFamilyMemberIds(f).includes(profileId)
+      );
+      if (!stillUsedElsewhere && rootState.profiles && rootState.profiles[profileId]) {
+        delete rootState.profiles[profileId];
+      }
+
+      if (pendingUserId === profileId) {
+        cancelPin();
+      }
+      if (currentUserId === profileId) {
+        await logout(true);
+      }
+      await pushToCloud();
+      renderLogin();
+    }
+
+    function selectMemberForLogin(profileId) {
+      const prof = getProfile(profileId);
+      if (!prof) return;
+      pendingUserId = profileId;
+      const hasPin = Boolean(prof.pin);
+      const shortId = getShortProfileCode(profileId);
+      document.getElementById("pinPanel").classList.remove("hidden");
+      document.getElementById("pinTitle").textContent = hasPin
+        ? `Welkom terug, ${prof.name} (${shortId})!`
+        : `Hoi ${prof.name} (${shortId}), stel je pincode in`;
+      document.getElementById("pinSubtitle").textContent = hasPin
+        ? `Voer de 4-cijferige pincode van jouw profiel (${profileId}) in.`
+        : `Kies een persoonlijke pincode van 4 cijfers voor jouw eigen profiel (${profileId}).`;
+      const inp = document.getElementById("pinInput");
+      inp.value = "";
+      document.getElementById("pinError").classList.add("hidden");
+      inp.focus();
+    }
+
+    function cancelPin() {
+      pendingUserId = null;
+      document.getElementById("pinPanel").classList.add("hidden");
+    }
+
+    async function submitPin() {
+      if (!pendingUserId) return;
+      const prof = getProfile(pendingUserId);
+      if (!prof) return;
+      const val = document.getElementById("pinInput").value.trim();
+      const err = document.getElementById("pinError");
+      if (!/^\d{4}$/.test(val)) {
+        err.textContent = "Vul precies 4 cijfers in.";
+        err.classList.remove("hidden");
+        return;
+      }
+      if (!prof.pin) {
+        prof.pin = val;
+        await pushToCloud();
+      } else if (prof.pin !== val) {
+        err.textContent = "Onjuiste pincode. Probeer opnieuw!";
+        err.classList.remove("hidden");
+        return;
+      }
+
+      currentUserId = pendingUserId;
+      pendingUserId = null;
+      try {
+        sessionStorage.setItem(LAST_USER_KEY, JSON.stringify({
+          family: activeFamily,
+          userId: currentUserId,
+          user: prof.name
+        }));
+      } catch (e) {}
+      selectedPersonId = currentUserId;
+      document.getElementById("pinPanel").classList.add("hidden");
+      document.getElementById("loginView").classList.add("hidden");
+      document.getElementById("appView").classList.remove("hidden");
+      document.getElementById("logoutBtn").classList.remove("hidden");
+      updateCurrentUserBadge();
+      renderApp();
+    }
+
+    document.getElementById("pinInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") submitPin();
+    });
+
+    async function logout(skipRender = false) {
+      currentUserId = null;
+      selectedPersonId = null;
+      cancelEdit();
+      document.getElementById("appView").classList.add("hidden");
+      document.getElementById("logoutBtn").classList.add("hidden");
+      document.getElementById("userBadge").classList.add("hidden");
+      document.getElementById("loginView").classList.remove("hidden");
+      if (!skipRender) renderLogin();
+    }
+
+    async function addNewMember() {
+      const inp = document.getElementById("newMemberName");
+      const name = inp.value.trim();
+      if (!name) return;
+      const fam = ensureActiveFamily();
+      const memberIds = getFamilyMemberIds(fam);
+      if (memberIds.some(id => getProfileName(id).toLowerCase() === name.toLowerCase())) {
+        alert("Er staat al iemand met deze naam in deze familie!");
+        return;
+      }
+
+      if (!rootState.profiles) rootState.profiles = {};
+      let profileId = generateProfileId(activeFamily, name);
+      while (rootState.profiles[profileId]) {
+        profileId = generateProfileId(activeFamily, name);
+      }
+      rootState.profiles[profileId] = {
+        id: profileId,
+        name,
+        pin: null
+      };
+      fam.memberIds = [...memberIds, profileId];
+
+      await pushToCloud();
+      inp.value = "";
+      renderLogin();
+    }
+
+    // Hoofd-app weergave
+    function switchTab(tab) {
+      currentTab = tab;
+      document.getElementById("tabLists").classList.toggle("active", tab === "lists");
+      document.getElementById("tabMyPurchases").classList.toggle("active", tab === "purchases");
+      document.getElementById("listsSection").classList.toggle("hidden", tab !== "lists");
+      document.getElementById("purchasesSection").classList.toggle("hidden", tab !== "purchases");
+      renderApp();
+    }
+
+    function renderApp() {
+      if (!currentUserId) return;
+      if (currentTab === "lists") {
+        renderPersonPills();
+        renderGiftList();
+      } else {
+        renderMyPurchases();
+      }
+    }
+
+    function getVisibleProfileIdsForLists() {
+      const fam = ensureActiveFamily();
+      const base = new Set(getFamilyMemberIds(fam));
+      if (currentUserId && getProfile(currentUserId)) base.add(currentUserId);
+      if (currentUserId === "prof_veronique" && getProfile("prof_otto")) {
+        base.add("prof_otto");
+      }
+      return Array.from(base);
+    }
+
+    function renderPersonPills() {
+      const container = document.getElementById("personPills");
+      container.innerHTML = "";
+      const profileIds = getVisibleProfileIdsForLists();
+      if (profileIds.length && !profileIds.includes(selectedPersonId)) {
+        selectedPersonId = profileIds.includes(currentUserId) ? currentUserId : profileIds[0];
+      }
+      profileIds.forEach(pid => {
+        const personName = getProfileName(pid);
+        const personGifts = rootState.sharedGifts.filter(g => g.ownerId === pid);
+        const count = personGifts.length;
+        const sum = personGifts.reduce((acc, g) => {
+          const p = parsePrice(g.price);
+          return acc + (p !== null ? p : 0);
+        }, 0);
+        const priceSuffix = sum > 0 ? ` • ${formatEuro(sum)}` : "";
+        const btn = document.createElement("button");
+        btn.className = "pill" + (pid === selectedPersonId ? " active" : "");
+        btn.title = `Profiel-ID: ${pid}`;
+        btn.textContent = (pid === currentUserId ? `⭐ Mijn lijst (${personName})` : personName) + ` (${count}${priceSuffix})`;
+        btn.onclick = () => {
+          selectedPersonId = pid;
+          cancelEdit();
+          renderApp();
+        };
+        container.appendChild(btn);
+      });
+    }
+
+    function canManageList(ownerId) {
+      if (!currentUserId || !ownerId) return false;
+      if (ownerId === currentUserId) return true;
+      return currentUserId === "prof_veronique" && ownerId === "prof_otto";
+    }
+
+    function shouldHideBoughtStatus(ownerId) {
+      if (!currentUserId || !ownerId) return false;
+      if (currentUserId === "prof_veronique" && ownerId === "prof_veronique") return true;
+      return ownerId === currentUserId;
+    }
+
+    function renderGiftList() {
+      const isOwnList = (selectedPersonId === currentUserId);
+      const selectedName = getProfileName(selectedPersonId);
+      const currentName = getProfileName(currentUserId);
+      const canEditThisList = canManageList(selectedPersonId);
+      const hideBoughtHere = shouldHideBoughtStatus(selectedPersonId);
+      const gifts = rootState.sharedGifts.filter(g => g.ownerId === selectedPersonId);
+
+      document.getElementById("selectedPersonHeading").textContent = isOwnList
+        ? `🎁 Jouw verlanglijstje (${currentName})`
+        : canEditThisList
+          ? `🎄 Verlanglijstje van ${selectedName} (gedeeld & beheer door ${currentName})`
+          : `🎄 Verlanglijstje van ${selectedName}`;
+
+      const listSum = gifts.reduce((acc, g) => {
+        const p = parsePrice(g.price);
+        return acc + (p !== null ? p : 0);
+      }, 0);
+      document.getElementById("listTotalBadge").textContent = `Lijstprijs: ${formatEuro(listSum)}`;
+      document.getElementById("giftCountBadge").textContent = `${gifts.length} ${gifts.length === 1 ? "cadeau" : "cadeaus"}`;
+      const pdfBtn = document.getElementById("downloadPdfBtn");
+      if (pdfBtn) {
+        pdfBtn.classList.toggle("hidden", !isOwnList);
+      }
+
+      const bannerEl = document.getElementById("ownListBanner");
+      bannerEl.classList.toggle("hidden", !hideBoughtHere);
+      bannerEl.innerHTML = isOwnList
+        ? `<span>🤫</span><div><strong>Geheime Kerstmodus:</strong> Dit is jouw eigen verlanglijstje. Je ziet hier dus <em>niet</em> welke cadeaus al zijn gekocht!</div>`
+        : `<span>🤫</span><div><strong>Geheime Kerstmodus voor ${escapeHtml(currentName)}:</strong> Je ziet hier niet welke cadeaus al voor jou gekocht zijn.</div>`;
+
+      document.getElementById("addGiftForm").classList.toggle("hidden", !canEditThisList);
+      document.getElementById("formTitle").textContent = isOwnList
+        ? "✨ Nieuw cadeau op jouw lijst zetten"
+        : `✨ Nieuw cadeau op het lijstje van ${selectedName} zetten`;
+
+      const listEl = document.getElementById("giftListContainer");
+      listEl.innerHTML = "";
+
+      if (gifts.length === 0) {
+        listEl.innerHTML = `<p style="color: var(--text-muted); text-align:center; padding: 20px;">Nog geen cadeaus op deze lijst.</p>`;
+        return;
+      }
+
+      gifts.forEach(gift => {
+        const isBought = Boolean(gift.boughtById || gift.boughtBy);
+        const showBoughtStatus = !hideBoughtHere && isBought;
+
+        const row = document.createElement("div");
+        row.className = "gift-item" + (showBoughtStatus ? " bought" : "");
+
+        const priceBadgeHtml = renderPriceBadge(gift.price);
+        const noteHtml = gift.note ? `<div class="gift-meta">📝 ${escapeHtml(gift.note)}</div>` : "";
+        const linkHtml = gift.url ? `<a class="gift-link" href="${escapeHtml(gift.url)}" target="_blank" rel="noopener noreferrer">🔗 Bekijk online</a>` : "";
+        const resolvedBuyerName = gift.boughtById ? getProfileName(gift.boughtById, gift.boughtBy) : gift.boughtBy;
+        const buyerLabel = gift.boughtByFamily && gift.boughtByFamily !== activeFamily
+          ? `${resolvedBuyerName} (${gift.boughtByFamily})`
+          : resolvedBuyerName;
+        const statusHtml = showBoughtStatus
+          ? `<span class="status-tag status-bought">✅ Gekocht door ${escapeHtml(buyerLabel)}</span>`
+          : "";
+
+        let actionsHtml = "";
+        if (canEditThisList) {
+          actionsHtml = `
+            <button class="btn-outline btn-sm" onclick="editGift('${gift.id}')">✏️ Bewerken</button>
+            <button class="btn-red btn-sm" onclick="deleteGift('${gift.id}')">🗑️ Verwijderen</button>
+          `;
+        } else {
+          const isBoughtByCurrentUser = gift.boughtById
+            ? gift.boughtById === currentUserId
+            : (gift.boughtBy === currentName && (!gift.boughtByFamily || gift.boughtByFamily === activeFamily));
+          if (!isBought) {
+            actionsHtml = `<button class="btn-green btn-sm" onclick="toggleBuy('${gift.id}')">🎁 Ik koop dit!</button>`;
+          } else if (isBoughtByCurrentUser) {
+            actionsHtml = `<button class="btn-outline btn-sm" onclick="toggleBuy('${gift.id}')">↩️ Annuleer mijn aankoop</button>`;
+          } else {
+            actionsHtml = `<span style="font-size:0.8rem; color:#94a3b8;">Al gereserveerd</span>`;
+          }
+        }
+
+        row.innerHTML = `
+          <div class="gift-info">
+            <div class="gift-title">
+              <span class="gift-title-text">${escapeHtml(gift.title)}</span>
+              ${priceBadgeHtml}
+              ${statusHtml}
+            </div>
+            ${noteHtml}
+            ${linkHtml}
+          </div>
+          <div class="gift-actions">${actionsHtml}</div>
+        `;
+        listEl.appendChild(row);
+      });
+    }
+
+    let lastAutoFilledPrice = "";
+    let priceLookupSeq = 0;
+
+    function setPriceLookupStatus(msg, color = "var(--text-muted)") {
+      const el = document.getElementById("priceLookupStatus");
+      if (!el) return;
+      el.textContent = msg || "";
+      el.style.color = color;
+    }
+
+    function normalizePriceCandidate(rawVal) {
+      if (rawVal === null || rawVal === undefined) return null;
+      const cleaned = String(rawVal)
+        .replace(/&euro;|€/gi, "")
+        .replace(/EUR/gi, "")
+        .replace(/\s+/g, "")
+        .trim();
+      if (!cleaned) return null;
+
+      let numericStr = cleaned;
+      if (cleaned.includes(",") && cleaned.includes(".")) {
+        if (cleaned.lastIndexOf(",") > cleaned.lastIndexOf(".")) {
+          numericStr = cleaned.replace(/\./g, "").replace(",", ".");
+        } else {
+          numericStr = cleaned.replace(/,/g, "");
+        }
+      } else if (cleaned.includes(",")) {
+        numericStr = cleaned.replace(",", ".");
+      }
+
+      if (!/^\d+(\.\d{1,2})?$/.test(numericStr)) return null;
+      const num = parseFloat(numericStr);
+      if (isNaN(num) || num <= 0 || num > 50000) return null;
+      return num.toFixed(2);
+    }
+
+    function extractPriceFromHtml(htmlText) {
+      if (!htmlText || typeof htmlText !== "string") return null;
+
+      const metaPatterns = [
+        /<meta[^>]+(?:property|name)=["'](?:product:price:amount|og:price:amount|price|twitter:data1)["'][^>]+content=["']([^"']+)["']/i,
+        /<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["'](?:product:price:amount|og:price:amount|price|twitter:data1)["']/i
+      ];
+      for (const re of metaPatterns) {
+        const m = htmlText.match(re);
+        if (m && m[1]) {
+          const norm = normalizePriceCandidate(m[1]);
+          if (norm) return norm;
+        }
+      }
+
+      const jsonLdRe = new RegExp('<script[^>]+type=["\']application\\/ld\\+json["\'][^>]*>([\\s\\S]*?)<\\/scr' + 'ipt>', 'gi');
+      const jsonLdMatches = [...htmlText.matchAll(jsonLdRe)];
+      for (const jm of jsonLdMatches) {
+        const rawJson = (jm[1] || "").trim();
+        if (!rawJson) continue;
+        const pricePropMatch = rawJson.match(/"price"\s*:\s*"?([0-9]+(?:[.,][0-9]{1,2})?)"?/i);
+        if (pricePropMatch && pricePropMatch[1]) {
+          const norm = normalizePriceCandidate(pricePropMatch[1]);
+          if (norm) return norm;
+        }
+      }
+
+      const dataPriceMatch = htmlText.match(/data-price=["']([0-9]+(?:[.,][0-9]{1,2})?)["']/i);
+      if (dataPriceMatch && dataPriceMatch[1]) {
+        const norm = normalizePriceCandidate(dataPriceMatch[1]);
+        if (norm) return norm;
+      }
+
+      const stripScriptRe = new RegExp('<script[\\s\\S]*?<\\/scr' + 'ipt>', 'gi');
+      const stripStyleRe = new RegExp('<style[\\s\\S]*?<\\/st' + 'yle>', 'gi');
+      const plainText = htmlText
+        .replace(stripScriptRe, " ")
+        .replace(stripStyleRe, " ")
+        .replace(/<[^>]+>/g, " ")
+        .replace(/&nbsp;/gi, " ")
+        .replace(/&euro;/gi, "€");
+
+      const euroMatches = [...plainText.matchAll(/(?:€|EUR)\s*([0-9]{1,4}(?:[.,][0-9]{2})?)|([0-9]{1,4}(?:,[0-9]{2}))\s*(?:€|EUR)/gi)];
+      for (const em of euroMatches) {
+        const candidate = em[1] || em[2];
+        const norm = normalizePriceCandidate(candidate);
+        if (norm) return norm;
+      }
+
+      return null;
+    }
+
+    async function fetchHtmlWithFallback(targetUrl) {
+      const candidates = [
+        targetUrl,
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
+        `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`
+      ];
+
+      for (const endpoint of candidates) {
+        try {
+          const controller = new AbortController();
+          const timer = setTimeout(() => controller.abort(), 5500);
+          const res = await fetch(endpoint, { signal: controller.signal });
+          clearTimeout(timer);
+          if (!res.ok) continue;
+          const text = await res.text();
+          if (text && text.length > 100) return text;
+        } catch (_) {}
+      }
+      return null;
+    }
+
+    async function autoFillPriceFromUrl(forceLookup = false) {
+      const urlInput = document.getElementById("giftUrl");
+      const priceInput = document.getElementById("giftPrice");
+      if (!urlInput || !priceInput) return;
+
+      const rawUrl = urlInput.value.trim();
+      if (!rawUrl) {
+        setPriceLookupStatus("");
+        return;
+      }
+
+      let parsedUrl;
+      try {
+        parsedUrl = new URL(rawUrl.startsWith("http") ? rawUrl : `https://${rawUrl}`);
+      } catch (_) {
+        setPriceLookupStatus("Ongeldige URL — controleer het webadres.", "#fca5a5");
+        return;
+      }
+
+      const currentPriceTrimmed = priceInput.value.trim();
+      const canOverwrite = !currentPriceTrimmed || currentPriceTrimmed === lastAutoFilledPrice || forceLookup;
+      if (!canOverwrite) return;
+
+      const seq = ++priceLookupSeq;
+      setPriceLookupStatus("🔍 Prijs opzoeken op website van handelaar...", "var(--gold)");
+
+      const html = await fetchHtmlWithFallback(parsedUrl.toString());
+      if (seq !== priceLookupSeq) return;
+
+      const foundPrice = extractPriceFromHtml(html);
+      if (foundPrice) {
+        const displayPrice = foundPrice.replace(".", ",");
+        priceInput.value = displayPrice;
+        lastAutoFilledPrice = displayPrice;
+        setPriceLookupStatus(`✅ Gevonden prijs ingevuld: € ${displayPrice} (pas aan indien nodig)`, "#6ee7b7");
+      } else {
+        setPriceLookupStatus("ℹ️ Prijs kon niet automatisch gelezen worden (webshop blokkeert directe opvraag). Vul de prijs handmatig in.", "var(--text-muted)");
+      }
+    }
+
+    async function saveGift() {
+      if (!canManageList(selectedPersonId)) return;
+      const title = document.getElementById("giftName").value.trim();
+      const urlFieldVal = document.getElementById("giftUrl").value.trim();
+      if (urlFieldVal && !document.getElementById("giftPrice").value.trim()) {
+        await autoFillPriceFromUrl(false);
+      }
+      const rawPrice = document.getElementById("giftPrice").value.trim();
+      const parsedPrice = parsePrice(rawPrice);
+      const price = parsedPrice !== null ? parsedPrice.toFixed(2) : rawPrice.replace(",", ".");
+      const url = document.getElementById("giftUrl").value.trim();
+      const note = document.getElementById("giftNote").value.trim();
+      const editId = document.getElementById("editGiftId").value;
+      const ownerName = getProfileName(selectedPersonId);
+
+      if (!title) {
+        alert("Vul minstens de naam van het cadeau in.");
+        return;
+      }
+
+      if (editId) {
+        const item = rootState.sharedGifts.find(g => g.id === editId && g.ownerId === selectedPersonId);
+        if (item) {
+          item.title = title;
+          item.price = price;
+          item.url = url;
+          item.note = note;
+          item.owner = ownerName;
+        }
+      } else {
+        rootState.sharedGifts.unshift({
+          id: "g_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
+          ownerId: selectedPersonId,
+          owner: ownerName,
+          title,
+          price,
+          url,
+          note,
+          boughtById: null,
+          boughtBy: null,
+          boughtByFamily: null
+        });
+      }
+
+      await pushToCloud();
+      cancelEdit();
+      renderApp();
+    }
+
+    function editGift(id) {
+      const item = rootState.sharedGifts.find(g => g.id === id && g.ownerId === selectedPersonId && canManageList(selectedPersonId));
+      if (!item) return;
+      const parsed = parsePrice(item.price);
+      document.getElementById("editGiftId").value = item.id;
+      const nameInput = document.getElementById("giftName");
+      nameInput.value = item.title;
+      document.getElementById("giftPrice").value = parsed !== null ? parsed.toFixed(2).replace(".", ",") : (item.price || "");
+      document.getElementById("giftUrl").value = item.url || "";
+      document.getElementById("giftNote").value = item.note || "";
+      document.getElementById("formTitle").textContent = "✏️ Cadeau aanpassen";
+      document.getElementById("saveGiftBtn").textContent = "💾 Opslaan";
+      document.getElementById("cancelEditBtn").classList.remove("hidden");
+
+      const formBox = document.getElementById("addGiftForm");
+      if (formBox) {
+        formBox.classList.remove("hidden");
+        formBox.scrollIntoView({ behavior: "smooth", block: "center" });
+        formBox.style.transition = "box-shadow 0.3s ease, border-color 0.3s ease";
+        formBox.style.borderColor = "var(--gold)";
+        formBox.style.boxShadow = "0 0 0 3px rgba(245, 200, 76, 0.35)";
+        setTimeout(() => {
+          formBox.style.borderColor = "rgba(245, 200, 76, 0.25)";
+          formBox.style.boxShadow = "";
+        }, 1400);
+      }
+      setTimeout(() => {
+        nameInput.focus();
+        nameInput.select();
+      }, 250);
+    }
+
+    function cancelEdit() {
+      document.getElementById("editGiftId").value = "";
+      document.getElementById("giftName").value = "";
+      document.getElementById("giftPrice").value = "";
+      document.getElementById("giftUrl").value = "";
+      document.getElementById("giftNote").value = "";
+      lastAutoFilledPrice = "";
+      setPriceLookupStatus("");
+      const selectedName = getProfileName(selectedPersonId);
+      document.getElementById("formTitle").textContent = (selectedPersonId && selectedPersonId !== currentUserId && canManageList(selectedPersonId))
+        ? `✨ Nieuw cadeau op het lijstje van ${selectedName} zetten`
+        : "✨ Nieuw cadeau op jouw lijst zetten";
+      document.getElementById("saveGiftBtn").textContent = "🎁 Toevoegen aan lijst";
+      document.getElementById("cancelEditBtn").classList.add("hidden");
+    }
+
+    async function deleteGift(id) {
+      if (!canManageList(selectedPersonId)) return;
+      if (!confirm("Ben je zeker dat je dit cadeau van deze lijst wilt verwijderen?")) return;
+      rootState.sharedGifts = rootState.sharedGifts.filter(g => !(g.id === id && g.ownerId === selectedPersonId));
+      await pushToCloud();
+      renderApp();
+    }
+
+    async function toggleBuy(id) {
+      if (cloudBaseUrl) await pullFromCloud(true);
+      const item = rootState.sharedGifts.find(g => g.id === id);
+      if (!item || canManageList(item.ownerId)) return;
+      const currentName = getProfileName(currentUserId);
+      const isBought = Boolean(item.boughtById || item.boughtBy);
+      const isBoughtByMe = item.boughtById
+        ? item.boughtById === currentUserId
+        : (item.boughtBy === currentName && (!item.boughtByFamily || item.boughtByFamily === activeFamily));
+
+      if (!isBought) {
+        item.boughtById = currentUserId;
+        item.boughtBy = currentName;
+        item.boughtByFamily = activeFamily;
+      } else if (isBoughtByMe) {
+        item.boughtById = null;
+        item.boughtBy = null;
+        item.boughtByFamily = null;
+      } else {
+        const buyerName = item.boughtById ? getProfileName(item.boughtById, item.boughtBy) : item.boughtBy;
+        const who = item.boughtByFamily ? `${buyerName} (${item.boughtByFamily})` : buyerName;
+        alert(`Dit cadeau werd net al gereserveerd door ${who}!`);
+      }
+      await pushToCloud();
+      renderApp();
+    }
+
+    function renderMyPurchases() {
+      const currentName = getProfileName(currentUserId);
+      const mine = rootState.sharedGifts.filter(g =>
+        g.boughtById
+          ? g.boughtById === currentUserId
+          : (g.boughtBy === currentName && (!g.boughtByFamily || g.boughtByFamily === activeFamily))
+      );
+      const container = document.getElementById("myPurchasesContainer");
+      container.innerHTML = "";
+
+      const total = mine.reduce((acc, g) => {
+        const val = parsePrice(g.price);
+        return acc + (val !== null ? val : 0);
+      }, 0);
+      document.getElementById("totalSpentBadge").textContent = `Totaal: ${formatEuro(total)}`;
+
+      if (mine.length === 0) {
+        container.innerHTML = `<p style="color: var(--text-muted); text-align:center; padding: 20px;">Je hebt nog geen cadeaus afgevinkt voor andere familieleden.</p>`;
+        return;
+      }
+
+      mine.forEach(gift => {
+        const row = document.createElement("div");
+        row.className = "gift-item bought";
+        const priceBadgeHtml = renderPriceBadge(gift.price);
+        const recipientName = gift.ownerId ? getProfileName(gift.ownerId, gift.owner) : gift.owner;
+        row.innerHTML = `
+          <div class="gift-info">
+            <div class="gift-title">
+              <span>🎁 ${escapeHtml(gift.title)}</span>
+              <span class="badge" style="font-size:0.75rem;">Voor: ${escapeHtml(recipientName)}</span>
+              ${priceBadgeHtml}
+            </div>
+            ${gift.note ? `<div class="gift-meta">📝 ${escapeHtml(gift.note)}</div>` : ""}
+          </div>
+          <div class="gift-actions">
+            <button class="btn-outline btn-sm" onclick="toggleBuy('${gift.id}')">↩️ Toch niet kopen</button>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function downloadPersonListPdf() {
+      if (!currentUserId || selectedPersonId !== currentUserId) return;
+      const personName = getProfileName(currentUserId);
+      const gifts = rootState.sharedGifts.filter(g => g.ownerId === currentUserId);
+      const hideBoughtHere = shouldHideBoughtStatus(currentUserId);
+
+      if (!window.jspdf || !window.jspdf.jsPDF) {
+        alert("PDF-generator kon niet geladen worden. Controleer je internetverbinding.");
+        return;
+      }
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ unit: "mm", format: "a4" });
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 16;
+      const usableWidth = pageWidth - margin * 2;
+      let y = 18;
+
+      function ensureSpace(neededHeight) {
+        if (y + neededHeight > pageHeight - 16) {
+          doc.addPage();
+          y = 18;
+        }
+      }
+
+      doc.setFillColor(13, 43, 34);
+      doc.roundedRect(margin, y - 6, usableWidth, 24, 3, 3, "F");
+      doc.setTextColor(245, 200, 76);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(16);
+      doc.text(`Verlanglijstje van ${personName}`, margin + 5, y + 3);
+
+      doc.setTextColor(226, 232, 240);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9.5);
+      const dateStr = new Date().toLocaleDateString("nl-BE", { day: "2-digit", month: "2-digit", year: "numeric" });
+      doc.text(`Familie: ${activeFamily}   •   Profiel: ${getShortProfileCode(currentUserId)}   •   Gegenereerd op: ${dateStr}`, margin + 5, y + 11);
+      y += 26;
+
+      const listSum = gifts.reduce((acc, g) => {
+        const p = parsePrice(g.price);
+        return acc + (p !== null ? p : 0);
+      }, 0);
+      doc.setTextColor(30, 41, 59);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10.5);
+      doc.text(
+        `Aantal cadeaus: ${gifts.length}   |   Totale richtprijs: ${formatEuro(listSum)}`,
+        margin,
+        y
+      );
+      y += 5;
+
+      if (hideBoughtHere) {
+        doc.setFont("helvetica", "italic");
+        doc.setFontSize(9);
+        doc.setTextColor(100, 116, 139);
+        doc.text("Geheime Kerstmodus actief: aankoopstatus is verborgen op je eigen lijst.", margin, y + 3);
+        y += 8;
+      } else {
+        y += 3;
+      }
+
+      doc.setDrawColor(203, 213, 225);
+      doc.line(margin, y, pageWidth - margin, y);
+      y += 7;
+
+      if (gifts.length === 0) {
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(11);
+        doc.setTextColor(71, 85, 105);
+        doc.text("Er staan momenteel nog geen cadeaus op dit verlanglijstje.", margin, y);
+      } else {
+        gifts.forEach((gift, index) => {
+          const parsedP = parsePrice(gift.price);
+          const priceLabel = parsedP !== null
+            ? formatEuro(parsedP)
+            : (gift.price && String(gift.price).trim() ? String(gift.price).trim() : "Prijs n.t.b.");
+
+          const isBought = Boolean(gift.boughtById || gift.boughtBy);
+          const resolvedBuyerName = gift.boughtById ? getProfileName(gift.boughtById, gift.boughtBy) : gift.boughtBy;
+          const buyerLabel = gift.boughtByFamily && gift.boughtByFamily !== activeFamily
+            ? `${resolvedBuyerName} (${gift.boughtByFamily})`
+            : resolvedBuyerName;
+          const statusLabel = hideBoughtHere
+            ? "Verborgen (eigen lijst)"
+            : (isBought ? `Gekocht door ${buyerLabel}` : "Nog beschikbaar");
+
+          const titleLines = doc.splitTextToSize(`${index + 1}. ${gift.title}`, usableWidth - 40);
+          const noteText = gift.note ? `Extra info: ${gift.note}` : "Extra info: -";
+          const noteLines = doc.splitTextToSize(noteText, usableWidth - 8);
+          const urlText = gift.url ? `Weblink: ${gift.url}` : "Weblink: -";
+          const urlLines = doc.splitTextToSize(urlText, usableWidth - 8);
+
+          const blockHeight = (titleLines.length * 5.2) + (noteLines.length * 4.5) + (urlLines.length * 4.5) + 12;
+          ensureSpace(blockHeight);
+
+          doc.setFillColor(248, 250, 252);
+          doc.setDrawColor(203, 213, 225);
+          doc.roundedRect(margin, y - 4, usableWidth, blockHeight - 2, 2, 2, "FD");
+
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(11);
+          doc.setTextColor(15, 23, 42);
+          doc.text(titleLines, margin + 4, y + 1);
+
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(10);
+          doc.setTextColor(180, 120, 10);
+          doc.text(priceLabel, pageWidth - margin - 4, y + 1, { align: "right" });
+
+          let innerY = y + 1 + titleLines.length * 5.2;
+
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(9);
+          if (!hideBoughtHere && isBought) {
+            doc.setTextColor(22, 101, 52);
+          } else {
+            doc.setTextColor(71, 85, 105);
+          }
+          doc.text(`Status: ${statusLabel}`, margin + 4, innerY);
+          innerY += 4.8;
+
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(9);
+          doc.setTextColor(51, 65, 85);
+          doc.text(noteLines, margin + 4, innerY);
+          innerY += noteLines.length * 4.5;
+
+          if (gift.url) {
+            doc.setTextColor(3, 105, 161);
+            doc.textWithLink(urlLines[0], margin + 4, innerY, { url: gift.url });
+            if (urlLines.length > 1) {
+              doc.text(urlLines.slice(1), margin + 4, innerY + 4.5);
+            }
+          } else {
+            doc.setTextColor(100, 116, 139);
+            doc.text(urlLines, margin + 4, innerY);
+          }
+
+          y += blockHeight + 2;
+        });
+      }
+
+      const safeFileName = `Verlanglijstje_${personName.replace(/[^a-zA-Z0-9_-]+/g, "_")}.pdf`;
+      doc.save(safeFileName);
+    }
+
+    function escapeHtml(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    initDecorations();
+    if (invitedFamilyFromUrl) {
+      const matchKey = Object.keys(rootState.families || {}).find(
+        k => k.toLowerCase() === invitedFamilyFromUrl.toLowerCase()
+      );
+      if (matchKey) {
+        activeFamily = matchKey;
+        localStorage.setItem(ACTIVE_FAMILY_KEY, activeFamily);
+      }
+    }
+    if (invitedCodeFromUrl) {
+      const matchByCode = findFamilyByInviteCode(invitedCodeFromUrl);
+      if (matchByCode) {
+        markFamilyUnlocked(matchByCode.famName);
+        activeFamily = matchByCode.famName;
+        localStorage.setItem(ACTIVE_FAMILY_KEY, activeFamily);
+      }
+    }
+    document.getElementById("accessCodeInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") submitAccessCode();
+    });
+    const welcomeCodeEl = document.getElementById("welcomeFamilyCodeInput");
+    if (welcomeCodeEl) {
+      welcomeCodeEl.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") openFamilyByInviteCode("welcomeFamilyCodeInput", "welcomeError");
+      });
+    }
+    const loginCodeEl = document.getElementById("loginFamilyCodeInput");
+    if (loginCodeEl) {
+      loginCodeEl.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") openFamilyByInviteCode("loginFamilyCodeInput", "loginCodeError");
+      });
+    }
+    if (checkAndRenderAccessGate()) {
+      if (invitedCodeFromUrl && findFamilyByInviteCode(invitedCodeFromUrl)) {
+        hideWelcomeViewAndShowLogin();
+      } else {
+        showWelcomeView();
+      }
+    }
+    const welcomeNewFamEl = document.getElementById("welcomeNewFamilyInput");
+    if (welcomeNewFamEl) {
+      welcomeNewFamEl.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") createFamilyFromWelcome();
+      });
+    }
+    const newMemberNameEl = document.getElementById("newMemberName");
+    if (newMemberNameEl) {
+      newMemberNameEl.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") addNewMember();
+      });
+    }
+    if (cloudBaseUrl) {
+      pullFromCloud(false);
+    }
+    const giftUrlEl = document.getElementById("giftUrl");
+    if (giftUrlEl) {
+      giftUrlEl.addEventListener("blur", () => autoFillPriceFromUrl(false));
+      giftUrlEl.addEventListener("change", () => autoFillPriceFromUrl(false));
+    }
+    startPolling();
+  </script>
+</body>
+</html>
