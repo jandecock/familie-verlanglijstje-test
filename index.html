@@ -586,7 +586,9 @@
           <h3 style="color: var(--gold); font-size: 1.05rem; margin-bottom: 8px;">✨ Nieuwe familie aanmaken</h3>
           <p style="font-size: 0.84rem; margin-bottom: 12px;">Start een eigen familiegroep met eigen code, leden en pincodes.</p>
           <label for="welcomeNewFamilyInput" style="display:block; font-size:0.8rem; color:var(--text-muted); margin-bottom:6px;">Naam van de nieuwe familie</label>
-          <input type="text" id="welcomeNewFamilyInput" placeholder="Bijv. Familie Peeters" style="margin-bottom: 12px;" />
+          <input type="text" id="welcomeNewFamilyInput" placeholder="Bijv. Familie Peeters" style="margin-bottom: 8px;" />
+          <label for="welcomeNewFamilyCodeInput" style="display:block; font-size:0.8rem; color:var(--text-muted); margin-bottom:6px;">Eigen unieke familiecode (optioneel)</label>
+          <input type="text" id="welcomeNewFamilyCodeInput" placeholder="Bijv. PEETERS26 (leeg = automatisch)" style="margin-bottom: 12px; text-transform:uppercase; font-weight:700; letter-spacing:1px;" />
           <button type="button" class="btn-green" style="width: 100%; justify-content: center;" onclick="createFamilyFromWelcome()">
             + Maak familie aan
           </button>
@@ -606,10 +608,12 @@
           <span style="font-size:0.85rem; color:var(--gold); font-weight:700;">👨‍👩‍👧‍👦 Familie:</span>
           <select id="familySelect" onchange="switchFamily(this.value)" style="width:auto; min-width:165px; padding:7px 12px; border-radius:10px; border:1px solid var(--gold); background:var(--input-bg); color:var(--text-main); font-size:0.9rem; font-weight:600;"></select>
         </div>
-        <div style="display:flex; gap:6px; flex-wrap:wrap;">
-          <input type="text" id="newFamilyName" placeholder="Nieuwe familie..." style="width:155px; padding:7px 10px; font-size:0.84rem;" />
+        <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+          <input type="text" id="newFamilyName" placeholder="Nieuwe familie..." style="width:145px; padding:7px 10px; font-size:0.84rem;" />
+          <input type="text" id="newFamilyCustomCode" placeholder="Eigen code (opt.)" title="Laat leeg om automatisch een unieke code te genereren" style="width:130px; padding:7px 10px; font-size:0.84rem; text-transform:uppercase; font-weight:700; letter-spacing:0.8px;" />
           <button class="btn-gold btn-sm" onclick="addNewFamily()">+ Familie</button>
           <button class="btn-outline btn-sm" onclick="copyFamilyInviteLink()" title="Kopieer uitnodigingslink voor de actieve familie">🔗 Deel familie</button>
+          <button type="button" class="btn-red btn-sm" id="deleteFamilyBtn" onclick="deleteActiveFamily()" title="Verwijder de geselecteerde familie">🗑️ Familie verwijderen</button>
         </div>
       </div>
 
@@ -1802,8 +1806,81 @@
       }
     }
 
+    function resolveRequestedFamilyCode(famName, rawCustomCode) {
+      const cleaned = normalizeFamilyCode(rawCustomCode);
+      if (!cleaned) {
+        return { ok: true, code: generateUniqueFamilyCode(famName) };
+      }
+      if (cleaned.length < 3) {
+        return { ok: false, error: "Een eigen familiecode moet minstens 3 letters of cijfers bevatten." };
+      }
+      const existing = findFamilyByInviteCode(cleaned);
+      if (existing) {
+        return {
+          ok: false,
+          error: `De familiecode "${cleaned}" is al in gebruik door "${existing.famName}". Kies een andere unieke code of laat het veld leeg.`
+        };
+      }
+      return { ok: true, code: cleaned };
+    }
+
+    async function deleteActiveFamily() {
+      const fam = ensureActiveFamily();
+      const famToDelete = activeFamily;
+      const allFamNames = Object.keys(rootState.families || {});
+      if (allFamNames.length <= 1) {
+        alert("Je kunt de laatste overgebleven familie niet verwijderen.");
+        return;
+      }
+      const memberCount = getFamilyMemberIds(fam).length;
+      const warnMsg = memberCount > 0
+        ? `Weet je zeker dat je "${famToDelete}" (met ${memberCount} ${memberCount === 1 ? "lid" : "leden"} in deze groep) wilt verwijderen?`
+        : `Weet je zeker dat je "${famToDelete}" wilt verwijderen?`;
+      if (!confirm(warnMsg)) return;
+
+      delete rootState.families[famToDelete];
+      try {
+        const set = getUnlockedFamiliesSet();
+        set.delete(famToDelete);
+        localStorage.setItem(UNLOCKED_FAMILIES_KEY, JSON.stringify(Array.from(set)));
+      } catch (_) {}
+
+      // Clean up orphaned profiles not linked to any remaining family
+      const stillLinked = new Set();
+      Object.values(rootState.families || {}).forEach(f => {
+        getFamilyMemberIds(f).forEach(pid => stillLinked.add(pid));
+      });
+      if (rootState.profiles && typeof rootState.profiles === "object") {
+        Object.keys(rootState.profiles).forEach(pid => {
+          if (!stillLinked.has(pid)) {
+            delete rootState.profiles[pid];
+          }
+        });
+      }
+
+      const remaining = Object.keys(rootState.families);
+      activeFamily = remaining.includes(DEFAULT_FAMILY_NAME) ? DEFAULT_FAMILY_NAME : remaining[0];
+      localStorage.setItem(ACTIVE_FAMILY_KEY, activeFamily);
+
+      if (currentUserId && !stillLinked.has(currentUserId)) {
+        currentUserId = null;
+        selectedPersonId = null;
+        cancelEdit();
+        document.getElementById("appView").classList.add("hidden");
+        document.getElementById("logoutBtn").classList.add("hidden");
+        document.getElementById("userBadge").classList.add("hidden");
+        document.getElementById("loginView").classList.remove("hidden");
+      }
+
+      cancelPin();
+      updateFamilyBadge();
+      await pushToCloud();
+      renderLogin();
+    }
+
     async function addNewFamily() {
       const inp = document.getElementById("newFamilyName");
+      const codeInp = document.getElementById("newFamilyCustomCode");
       const rawName = inp.value.trim();
       if (!rawName) return;
       const creatorUserId = getViewerProfileId();
@@ -1818,14 +1895,20 @@
         activeFamily = existingKey;
         localStorage.setItem(ACTIVE_FAMILY_KEY, activeFamily);
         inp.value = "";
+        if (codeInp) codeInp.value = "";
         updateFamilyBadge();
         renderLogin();
         return;
       }
-      const uniqueCode = generateUniqueFamilyCode(rawName);
+      const codeCheck = resolveRequestedFamilyCode(rawName, codeInp ? codeInp.value : "");
+      if (!codeCheck.ok) {
+        alert(codeCheck.error);
+        if (codeInp) codeInp.focus();
+        return;
+      }
       rootState.families[rawName] = makeDefaultFamilyObj({
         famName: rawName,
-        inviteCode: uniqueCode,
+        inviteCode: codeCheck.code,
         memberIds: [],
         members: [],
         pins: {},
@@ -1836,6 +1919,7 @@
       activeFamily = rawName;
       localStorage.setItem(ACTIVE_FAMILY_KEY, activeFamily);
       inp.value = "";
+      if (codeInp) codeInp.value = "";
       cancelPin();
       updateFamilyBadge();
       await pushToCloud();
@@ -1910,6 +1994,7 @@
 
     async function createFamilyFromWelcome() {
       const inputEl = document.getElementById("welcomeNewFamilyInput");
+      const codeInputEl = document.getElementById("welcomeNewFamilyCodeInput");
       const errEl = document.getElementById("welcomeError");
       const rawName = inputEl ? inputEl.value.trim() : "";
 
@@ -1940,16 +2025,26 @@
         activeFamily = existingKey;
         localStorage.setItem(ACTIVE_FAMILY_KEY, activeFamily);
         inputEl.value = "";
+        if (codeInputEl) codeInputEl.value = "";
         updateFamilyBadge();
         hideWelcomeViewAndShowLogin();
         return;
       }
 
+      const codeCheck = resolveRequestedFamilyCode(rawName, codeInputEl ? codeInputEl.value : "");
+      if (!codeCheck.ok) {
+        if (errEl) {
+          errEl.textContent = codeCheck.error;
+          errEl.classList.remove("hidden");
+        }
+        if (codeInputEl) codeInputEl.focus();
+        return;
+      }
+
       if (errEl) errEl.classList.add("hidden");
-      const uniqueCode = generateUniqueFamilyCode(rawName);
       rootState.families[rawName] = makeDefaultFamilyObj({
         famName: rawName,
-        inviteCode: uniqueCode,
+        inviteCode: codeCheck.code,
         memberIds: [],
         members: [],
         pins: {},
@@ -1960,6 +2055,7 @@
       activeFamily = rawName;
       localStorage.setItem(ACTIVE_FAMILY_KEY, activeFamily);
       inputEl.value = "";
+      if (codeInputEl) codeInputEl.value = "";
       updateFamilyBadge();
       await pushToCloud();
       hideWelcomeViewAndShowLogin();
@@ -1978,6 +2074,15 @@
       if (loginCodeErr) {
         loginCodeErr.textContent = "";
         loginCodeErr.classList.add("hidden");
+      }
+
+      const delFamBtn = document.getElementById("deleteFamilyBtn");
+      if (delFamBtn) {
+        const totalFamilies = Object.keys(rootState.families || {}).length;
+        delFamBtn.disabled = totalFamilies <= 1;
+        delFamBtn.title = totalFamilies <= 1
+          ? "Laatste overgebleven familie kan niet worden verwijderd"
+          : `Verwijder "${activeFamily}"`;
       }
 
       const sel = document.getElementById("familySelect");
