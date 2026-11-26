@@ -575,6 +575,7 @@
         <span class="badge hidden" id="userBadge"></span>
         <button class="btn-outline btn-sm" onclick="openCloudModal()">☁️ Cloud-opslag</button>
         <button class="btn-outline btn-sm" onclick="syncNow()" id="refreshBtn" title="Ververs lijstjes">🔄</button>
+        <button type="button" class="btn-outline btn-sm hidden" id="backToWelcomeBtn" onclick="returnToWelcomeScreen()">🏠 Welkomstscherm</button>
         <button class="btn-red btn-sm hidden" id="logoutBtn" onclick="logout()">🔒 Uitloggen</button>
       </div>
     </header>
@@ -609,7 +610,7 @@
 
       <div class="card" style="margin-bottom: 14px; padding: 16px; background: rgba(7, 25, 20, 0.78); text-align: left;">
         <h3 style="color: var(--gold); font-size: 1rem; margin-bottom: 6px;">🔑 Toegang via unieke familiecode</h3>
-        <p style="font-size: 0.83rem; margin-bottom: 10px;">Heb je een unieke familiecode ontvangen (bijv. <code style="color:var(--gold);">DECOCK26</code>)? Vul die hier in om direct naar jouw familie te gaan.</p>
+        <p style="font-size: 0.83rem; margin-bottom: 10px;">Vul je unieke familiecode hier in om direct naar jouw familie te gaan.</p>
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
           <input type="text" id="welcomeFamilyCodeInput" placeholder="Unieke familiecode (bijv. DECOCK26)..." style="flex:1 1 210px; text-transform:uppercase; font-weight:700; letter-spacing:1.5px;" />
           <button type="button" class="btn-gold" onclick="openFamilyByInviteCode('welcomeFamilyCodeInput', 'welcomeError')">
@@ -1597,8 +1598,10 @@
       const loginEl = document.getElementById("loginView");
       const appEl = document.getElementById("appView");
       const welcomeEl = document.getElementById("welcomeView");
+      const backWelcomeBtn = document.getElementById("backToWelcomeBtn");
       if (hasAppAccess()) {
         gateEl.classList.add("hidden");
+        if (backWelcomeBtn) backWelcomeBtn.classList.remove("hidden");
         if (currentUserId) {
           if (welcomeEl) welcomeEl.classList.add("hidden");
           loginEl.classList.add("hidden");
@@ -1612,6 +1615,7 @@
       } else {
         currentUserId = null;
         pendingUserId = null;
+        if (backWelcomeBtn) backWelcomeBtn.classList.add("hidden");
         if (welcomeEl) welcomeEl.classList.add("hidden");
         appEl.classList.add("hidden");
         loginEl.classList.add("hidden");
@@ -2009,6 +2013,23 @@
       updateFamilyBadge();
       await pushToCloud();
       renderLogin();
+    }
+
+    function returnToWelcomeScreen() {
+      if (!hasAppAccess()) {
+        checkAndRenderAccessGate();
+        return;
+      }
+      currentUserId = null;
+      pendingUserId = null;
+      selectedPersonId = null;
+      cancelPin();
+      cancelEdit();
+      const logoutBtn = document.getElementById("logoutBtn");
+      const userBadge = document.getElementById("userBadge");
+      if (logoutBtn) logoutBtn.classList.add("hidden");
+      if (userBadge) userBadge.classList.add("hidden");
+      showWelcomeView();
     }
 
     // Welkomstscherm logica: bestaande familie openen, code gebruiken of nieuwe familie aanmaken
