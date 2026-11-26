@@ -545,12 +545,24 @@
     <!-- TOEGANGSSCHERM VOOR ONBEKENDEN -->
     <div id="accessGateView" class="login-box">
       <h2>🔒 Besloten Familie-app</h2>
-      <p>Deze verlanglijstjes-app is enkel toegankelijk voor uitgenodigde familieleden. Voer de <strong>familie-toegangscode</strong> of een <strong>unieke familiecode</strong> in, of open de persoonlijke deel-link.</p>
-      <div style="max-width: 300px; margin: 0 auto 12px;">
+      <p>Deze verlanglijstjes-app is enkel toegankelijk voor uitgenodigde familieleden. Voer de <strong>familie-toegangscode</strong> of een <strong>unieke familiecode</strong> in, open de persoonlijke deel-link, of maak hieronder meteen een <strong>nieuwe familie</strong> aan.</p>
+      <div style="max-width: 320px; margin: 0 auto 12px;">
         <input type="text" id="accessCodeInput" placeholder="Familie- of appcode..." style="text-align:center; font-weight:700; letter-spacing:2px;" />
       </div>
       <div id="accessGateError" class="error-msg hidden" style="margin-bottom: 10px;"></div>
       <button class="btn-gold" onclick="submitAccessCode()">🔓 Toegang openen</button>
+
+      <div class="card" style="margin-top: 20px; margin-bottom: 0; padding: 16px; background: rgba(7, 25, 20, 0.72); text-align: left;">
+        <h3 style="color: var(--gold); font-size: 1.02rem; margin-bottom: 6px;">✨ Nieuwe familie aanmaken</h3>
+        <p style="font-size: 0.83rem; margin-bottom: 10px;">Start direct een nieuwe familiegroep met een eigen of automatisch gegenereerde unieke familiecode.</p>
+        <div class="form-grid" style="margin-bottom: 10px;">
+          <input type="text" id="gateNewFamilyInput" placeholder="Naam van de nieuwe familie *" />
+          <input type="text" id="gateNewFamilyCodeInput" placeholder="Eigen unieke code (optioneel)" style="text-transform:uppercase; font-weight:700; letter-spacing:1px;" />
+        </div>
+        <button type="button" class="btn-green" style="width: 100%; justify-content: center;" onclick="createFamilyFromAccessGate()">
+          + Maak nieuwe familie aan
+        </button>
+      </div>
     </div>
 
     <!-- WELKOMSTSCHERM: BESTAANDE OF NIEUWE FAMILIE -->
@@ -560,7 +572,7 @@
 
       <div class="card" style="margin-bottom: 14px; padding: 16px; background: rgba(7, 25, 20, 0.78); text-align: left;">
         <h3 style="color: var(--gold); font-size: 1rem; margin-bottom: 6px;">🔑 Toegang via unieke familiecode</h3>
-        <p style="font-size: 0.83rem; margin-bottom: 10px;">Heb je een unieke familiecode ontvangen? Vul die hier in om direct naar jouw familie te gaan.</p>
+        <p style="font-size: 0.83rem; margin-bottom: 10px;">Heb je een unieke familiecode ontvangen (bijv. <code style="color:var(--gold);">DECOCK26</code>)? Vul die hier in om direct naar jouw familie te gaan.</p>
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
           <input type="text" id="welcomeFamilyCodeInput" placeholder="Unieke familiecode (bijv. DECOCK26)..." style="flex:1 1 210px; text-transform:uppercase; font-weight:700; letter-spacing:1.5px;" />
           <button type="button" class="btn-gold" onclick="openFamilyByInviteCode('welcomeFamilyCodeInput', 'welcomeError')">
@@ -1992,6 +2004,80 @@
       hideWelcomeViewAndShowLogin();
     }
 
+    async function createFamilyFromAccessGate() {
+      const nameEl = document.getElementById("gateNewFamilyInput");
+      const codeEl = document.getElementById("gateNewFamilyCodeInput");
+      const errEl = document.getElementById("accessGateError");
+      const rawName = nameEl ? nameEl.value.trim() : "";
+
+      if (!rawName) {
+        if (errEl) {
+          errEl.textContent = "Vul eerst een naam in voor de nieuwe familie.";
+          errEl.classList.remove("hidden");
+        }
+        if (nameEl) nameEl.focus();
+        return;
+      }
+
+      if (cloudBaseUrl) {
+        await pullFromCloud(true);
+      }
+
+      const existingKey = Object.keys(rootState.families || {}).find(
+        k => k.toLowerCase() === rawName.toLowerCase()
+      );
+      if (existingKey) {
+        if (!canSeeFamily(existingKey)) {
+          if (errEl) {
+            errEl.textContent = "Deze familienaam bestaat al en is privé. Gebruik de unieke familiecode om toegang te krijgen.";
+            errEl.classList.remove("hidden");
+          }
+          return;
+        }
+        if (errEl) errEl.classList.add("hidden");
+        localStorage.setItem(ACCESS_GRANTED_KEY, getExpectedAccessCode());
+        activeFamily = existingKey;
+        localStorage.setItem(ACTIVE_FAMILY_KEY, activeFamily);
+        nameEl.value = "";
+        if (codeEl) codeEl.value = "";
+        updateFamilyBadge();
+        checkAndRenderAccessGate();
+        hideWelcomeViewAndShowLogin();
+        return;
+      }
+
+      const codeCheck = resolveRequestedFamilyCode(rawName, codeEl ? codeEl.value : "");
+      if (!codeCheck.ok) {
+        if (errEl) {
+          errEl.textContent = codeCheck.error;
+          errEl.classList.remove("hidden");
+        }
+        if (codeEl) codeEl.focus();
+        return;
+      }
+
+      if (errEl) errEl.classList.add("hidden");
+      localStorage.setItem(ACCESS_GRANTED_KEY, getExpectedAccessCode());
+      rootState.families[rawName] = makeDefaultFamilyObj({
+        famName: rawName,
+        inviteCode: codeCheck.code,
+        memberIds: [],
+        members: [],
+        pins: {},
+        isPrivate: false,
+        createdBy: null
+      });
+      markFamilyUnlocked(rawName);
+      activeFamily = rawName;
+      localStorage.setItem(ACTIVE_FAMILY_KEY, activeFamily);
+      nameEl.value = "";
+      if (codeEl) codeEl.value = "";
+      updateFamilyBadge();
+      await pushToCloud();
+      checkAndRenderAccessGate();
+      hideWelcomeViewAndShowLogin();
+    }
+
     async function createFamilyFromWelcome() {
       const inputEl = document.getElementById("welcomeNewFamilyInput");
       const codeInputEl = document.getElementById("welcomeNewFamilyCodeInput");
@@ -2998,6 +3084,18 @@
     document.getElementById("accessCodeInput").addEventListener("keydown", (e) => {
       if (e.key === "Enter") submitAccessCode();
     });
+    const gateNewFamEl = document.getElementById("gateNewFamilyInput");
+    if (gateNewFamEl) {
+      gateNewFamEl.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") createFamilyFromAccessGate();
+      });
+    }
+    const gateNewCodeEl = document.getElementById("gateNewFamilyCodeInput");
+    if (gateNewCodeEl) {
+      gateNewCodeEl.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") createFamilyFromAccessGate();
+      });
+    }
     const welcomeCodeEl = document.getElementById("welcomeFamilyCodeInput");
     if (welcomeCodeEl) {
       welcomeCodeEl.addEventListener("keydown", (e) => {
