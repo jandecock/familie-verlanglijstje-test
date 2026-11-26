@@ -1380,11 +1380,8 @@
       const fam = rootState.families && rootState.families[famName];
       if (!fam) return false;
 
-      // Standaardfamilie blijft zichtbaar als basisgroep
-      if (famName === DEFAULT_FAMILY_NAME) return true;
-
-      // Een gebruiker mag een familie enkel zien als hij/zij daadwerkelijk lid is
-      // of de unieke familiecode van die specifieke familie heeft ontgrendeld.
+      // Een gebruiker mag een familie (inclusief Familie De Cock) enkel zien
+      // als hij/zij lid is, de unieke familiecode heeft ontgrendeld, of via de URL is uitgenodigd.
       if (isViewerMemberOfFamily(famName, fam)) {
         return true;
       }
@@ -1398,32 +1395,21 @@
     }
 
     function getVisibleFamilyNames() {
-      const names = Object.keys(rootState.families || {}).filter(canSeeFamily);
-      if (names.length > 0) return names;
-      if (!rootState.families[DEFAULT_FAMILY_NAME]) {
-        const profiles = createDefaultProfiles();
-        rootState.profiles = { ...profiles, ...(rootState.profiles || {}) };
-        const defaultIds = Object.keys(profiles);
-        rootState.families[DEFAULT_FAMILY_NAME] = makeDefaultFamilyObj({
-          famName: DEFAULT_FAMILY_NAME,
-          inviteCode: DEFAULT_FAMILY_CODE,
-          memberIds: defaultIds,
-          profiles: rootState.profiles
-        });
-      }
-      return [DEFAULT_FAMILY_NAME];
+      return Object.keys(rootState.families || {}).filter(canSeeFamily);
     }
 
     function ensureActiveFamily() {
       ensureFamilyInviteCodes(rootState);
       const visibleNames = getVisibleFamilyNames();
-      if (!visibleNames.includes(activeFamily)) {
-        activeFamily = visibleNames.includes(DEFAULT_FAMILY_NAME) ? DEFAULT_FAMILY_NAME : visibleNames[0];
-        if (!rootState.families[activeFamily]) {
-          rootState.families[activeFamily] = makeDefaultFamilyObj({ famName: activeFamily, memberIds: [], profiles: rootState.profiles });
-        }
+      if (visibleNames.length > 0 && !visibleNames.includes(activeFamily)) {
+        activeFamily = visibleNames[0];
+        localStorage.setItem(ACTIVE_FAMILY_KEY, activeFamily);
+      } else if (activeFamily) {
+        localStorage.setItem(ACTIVE_FAMILY_KEY, activeFamily);
       }
-      localStorage.setItem(ACTIVE_FAMILY_KEY, activeFamily);
+      if (!rootState.families[activeFamily]) {
+        rootState.families[activeFamily] = makeDefaultFamilyObj({ famName: activeFamily, memberIds: [], profiles: rootState.profiles });
+      }
       return rootState.families[activeFamily];
     }
 
