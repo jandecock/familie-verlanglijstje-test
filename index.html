@@ -355,6 +355,43 @@
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
     }
 
+    .join-family-bar {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    }
+    .join-family-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      flex: 1 1 320px;
+      justify-content: flex-end;
+    }
+    .join-family-controls input {
+      width: auto;
+      min-width: 190px;
+      max-width: 240px;
+      padding: 8px 12px;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 1px;
+      font-size: 0.88rem;
+    }
+    .join-family-msg {
+      width: 100%;
+      font-size: 0.83rem;
+      margin-top: 2px;
+    }
+
     .list-header-right {
       display: flex;
       align-items: center;
@@ -672,6 +709,18 @@
 
     <!-- INGELOGDE APP -->
     <div id="appView" class="hidden">
+      <div class="join-family-bar" id="joinFamilyBar">
+        <div>
+          <strong style="color: var(--gold); font-size: 0.92rem;">🔑 Lid worden van een familie met code</strong>
+          <div style="font-size: 0.8rem; color: var(--text-muted);">Vul de unieke familiecode in om jouw profiel direct als lid toe te voegen.</div>
+        </div>
+        <div class="join-family-controls">
+          <input type="text" id="joinFamilyCodeInput" placeholder="Unieke familiecode..." />
+          <button type="button" class="btn-green btn-sm" onclick="joinFamilyByCode()">➕ Word lid</button>
+        </div>
+        <div id="joinFamilyFeedback" class="join-family-msg hidden"></div>
+      </div>
+
       <div class="tabs">
         <button class="tab-btn active" id="tabLists" onclick="switchTab('lists')">🎁 Verlanglijstjes</button>
         <button class="tab-btn" id="tabMyPurchases" onclick="switchTab('purchases')">🛍️ Mijn Gekochte Cadeaus</button>
@@ -1303,21 +1352,45 @@
       return null;
     }
 
+    function isViewerMemberOfFamily(famName, famObj = null) {
+      const fam = famObj || (rootState.families && rootState.families[famName]);
+      if (!fam) return false;
+      const memberIds = getFamilyMemberIds(fam);
+      const viewerId = getViewerProfileId();
+      if (viewerId && memberIds.includes(viewerId)) {
+        return true;
+      }
+      try {
+        const raw = sessionStorage.getItem(LAST_USER_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          const viewerName = String((parsed && parsed.user) || (viewerId && getProfileName(viewerId)) || "").trim().toLowerCase();
+          if (viewerName && Array.isArray(fam.members)) {
+            if (fam.members.some(m => String(m || "").trim().toLowerCase() === viewerName)) {
+              return true;
+            }
+          }
+        }
+      } catch (_) {}
+      return false;
+    }
+
     function canSeeFamily(famName) {
       const fam = rootState.families && rootState.families[famName];
       if (!fam) return false;
-      if (!fam.isPrivate) return true;
-      if (isFamilyUnlockedByCode(famName)) return true;
+
+      // Standaardfamilie blijft zichtbaar als basisgroep
+      if (famName === DEFAULT_FAMILY_NAME) return true;
+
+      // Een gebruiker mag een familie enkel zien als hij/zij daadwerkelijk lid is
+      // of de unieke familiecode van die specifieke familie heeft ontgrendeld.
+      if (isViewerMemberOfFamily(famName, fam)) {
+        return true;
+      }
+      if (isFamilyUnlockedByCode(famName)) {
+        return true;
+      }
       if (invitedFamilyFromUrl && famName.toLowerCase() === invitedFamilyFromUrl.toLowerCase()) {
-        return true;
-      }
-      const viewerId = getViewerProfileId();
-      if (!viewerId) return false;
-      if (fam.createdBy && fam.createdBy.userId === viewerId) {
-        return true;
-      }
-      const memberIds = getFamilyMemberIds(fam);
-      if (memberIds.includes(viewerId)) {
         return true;
       }
       return false;
@@ -1555,7 +1628,13 @@
       const rawEntered = (inp.value || "").trim();
       const expected = getExpectedAccessCode();
 
-      if (cloudBaseUrl) {
+      const joinCodeEl = document.getElementById("joinFamilyCodeInput");
+    if (joinCodeEl) {
+      joinCodeEl.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") joinFamilyByCode();
+      });
+    }
+    if (cloudBaseUrl) {
         await pullFromCloud(true);
       }
 
@@ -1918,7 +1997,7 @@
         memberIds: [],
         members: [],
         pins: {},
-        isPrivate: Boolean(creatorUserId),
+        isPrivate: true,
         createdBy: creatorUserId ? { family: creatorFamily, user: creatorUser, userId: creatorUserId } : null
       });
       markFamilyUnlocked(rawName);
@@ -2058,7 +2137,7 @@
         memberIds: [],
         members: [],
         pins: {},
-        isPrivate: false,
+        isPrivate: true,
         createdBy: null
       });
       markFamilyUnlocked(rawName);
@@ -2128,7 +2207,7 @@
         memberIds: [],
         members: [],
         pins: {},
-        isPrivate: Boolean(creatorUserId),
+        isPrivate: true,
         createdBy: creatorUserId ? { family: creatorFamily, user: creatorUser, userId: creatorUserId } : null
       });
       markFamilyUnlocked(rawName);
@@ -2359,6 +2438,81 @@
       document.getElementById("listsSection").classList.toggle("hidden", tab !== "lists");
       document.getElementById("purchasesSection").classList.toggle("hidden", tab !== "purchases");
       renderApp();
+    }
+
+    function setJoinFamilyFeedback(msg, isError = false) {
+      const el = document.getElementById("joinFamilyFeedback");
+      if (!el) return;
+      if (!msg) {
+        el.textContent = "";
+        el.classList.add("hidden");
+        return;
+      }
+      el.textContent = msg;
+      el.style.color = isError ? "#fca5a5" : "#6ee7b7";
+      el.classList.remove("hidden");
+    }
+
+    async function joinFamilyByCode() {
+      const inp = document.getElementById("joinFamilyCodeInput");
+      const rawCode = inp ? inp.value.trim() : "";
+      const normCode = normalizeFamilyCode(rawCode);
+
+      if (!currentUserId || !getProfile(currentUserId)) {
+        setJoinFamilyFeedback("Log eerst in op je profiel om lid te worden van een familie.", true);
+        return;
+      }
+
+      if (!normCode) {
+        setJoinFamilyFeedback("Vul eerst een geldige unieke familiecode in.", true);
+        if (inp) inp.focus();
+        return;
+      }
+
+      if (cloudBaseUrl) {
+        await pullFromCloud(true);
+      }
+
+      const found = findFamilyByInviteCode(normCode);
+      if (!found) {
+        setJoinFamilyFeedback(`Geen familie gevonden met code "${rawCode.toUpperCase()}".`, true);
+        return;
+      }
+
+      const { famName, famObj } = found;
+      const prof = getProfile(currentUserId);
+      const userName = prof ? prof.name : getProfileName(currentUserId);
+      const memberIds = getFamilyMemberIds(famObj);
+
+      if (!memberIds.includes(currentUserId)) {
+        memberIds.push(currentUserId);
+      }
+      famObj.memberIds = memberIds;
+      famObj.members = memberIds.map(id => getProfileName(id));
+      if (prof && prof.pin) {
+        if (!famObj.pins || typeof famObj.pins !== "object") famObj.pins = {};
+        famObj.pins[prof.name] = prof.pin;
+      }
+
+      markFamilyUnlocked(famName);
+      activeFamily = famName;
+      localStorage.setItem(ACTIVE_FAMILY_KEY, activeFamily);
+      selectedPersonId = currentUserId;
+
+      try {
+        sessionStorage.setItem(LAST_USER_KEY, JSON.stringify({
+          family: activeFamily,
+          userId: currentUserId,
+          user: userName
+        }));
+      } catch (_) {}
+
+      if (inp) inp.value = "";
+      updateFamilyBadge();
+      updateCurrentUserBadge();
+      await pushToCloud();
+      renderApp();
+      setJoinFamilyFeedback(`✅ Je bent nu lid van "${famName}" (${famObj.inviteCode})!`, false);
     }
 
     function renderApp() {
